@@ -64,7 +64,7 @@ func Initialize(initAccount common.PublicKey, auth Authorized, lockup Lockup) ty
 }
 
 func Authorize(stakePubkey, authPubkey, newAuthPubkey common.PublicKey, authType StakeAuthorizationType,
-	 custodianPubkey common.PublicKey) types.Instruction {
+	custodianPubkey common.PublicKey) types.Instruction {
 	data, err := common.SerializeData(struct {
 		Instruction            Instruction
 		NewAuthorized          common.PublicKey

@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 const (
 	DevnetRPCEndpoint  = "https://api.devnet.solana.com"
 	TestnetRPCEndpoint = "https://testnet.solana.com"
 	MainnetRPCEndpoint = "https://api.mainnet-beta.solana.com"
+	retryLimit         = 60
+	waitTime           = time.Second * 2
 )
 
 type Commitment string
@@ -53,10 +56,23 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 
 	// http client and send request
 	httpclient := &http.Client{}
-	res, err := httpclient.Do(req)
-	if err != nil {
-		return err
+
+	retry := 0
+	var res *http.Response
+	for {
+		if retry > retryLimit {
+			return fmt.Errorf("httpclient reach retry limit, err: %s", err)
+		}
+		res, err = httpclient.Do(req)
+		if err != nil {
+			time.Sleep(waitTime)
+			retry++
+			continue
+		} else {
+			break
+		}
 	}
+
 	defer res.Body.Close()
 
 	// parse body

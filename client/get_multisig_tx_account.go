@@ -10,9 +10,9 @@ import (
 
 type GetMultisigTxAccountInfo struct {
 	Multisig   [32]uint8
-	ProgramID  [32]uint8
-	Accounts   []TransactionAccount
-	Data       []uint8
+	ProgramID  [][32]uint8
+	Accounts   [][]TransactionAccount
+	Data       [][]uint8
 	Signers    []uint8
 	DidExecute uint8
 }
@@ -62,7 +62,7 @@ func (s *Client) GetMultisigTxAccountInfo(ctx context.Context, account string) (
 	multiTxAccountInfo := GetMultisigTxAccountInfo{}
 	err = borsh.Deserialize(&multiTxAccountInfo, accountDataBts[8:])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Deserialize err: %s", err)
 	}
 	return &multiTxAccountInfo, nil
 }

@@ -130,17 +130,26 @@ func Approve(
 }
 
 func GetRemainAccounts(ins []types.Instruction) []types.AccountMeta {
-	ret := []types.AccountMeta{}
+	accountMetas := []types.AccountMeta{}
+	accountMap := make(map[string]types.AccountMeta)
 	for _, in := range ins {
-		ret = append(ret, types.AccountMeta{
+		accountMetas = append(accountMetas, types.AccountMeta{
 			PubKey:     in.ProgramID,
 			IsSigner:   false,
 			IsWritable: false,
 		})
-		ret = append(ret, in.Accounts...)
+		accountMetas = append(accountMetas, in.Accounts...)
 	}
-	for i, _ := range ret {
-		ret[i].IsSigner = false
+	for i, _ := range accountMetas {
+		addrStr := accountMetas[i].PubKey.ToBase58()
+		accountMetas[i].IsWritable = accountMap[addrStr].IsWritable || accountMetas[i].IsWritable
+		accountMetas[i].IsSigner = false
+		accountMap[addrStr] = accountMetas[i]
+	}
+
+	ret := make([]types.AccountMeta, 0)
+	for _, value := range accountMap {
+		ret = append(ret, value)
 	}
 	return ret
 }

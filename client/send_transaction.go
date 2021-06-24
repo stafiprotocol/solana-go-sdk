@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"time"
 )
 
 type SendTransactionConfig struct {
@@ -14,6 +15,7 @@ type SendTransactionConfig struct {
 
 // SendRawTransaction is a quick way to send the serialize tx
 func (s *Client) SendRawTransaction(ctx context.Context, tx []byte) (string, error) {
+	time.Sleep(time.Second * 1)
 	res := struct {
 		GeneralResponse
 		Result string `json:"result"`

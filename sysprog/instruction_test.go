@@ -549,7 +549,7 @@ func ExampleCreateAccountWithSeed() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	multisigAccount := common.CreateWithSeed(feePayer.PublicKey,"hello",common.MultisigProgramID)
+	multisigAccount := common.CreateWithSeed(feePayer.PublicKey, "hello", common.MultisigProgramID)
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -579,5 +579,3 @@ func ExampleCreateAccountWithSeed() {
 	fmt.Println("createMultisig txHash:", txHash)
 
 }
-
-
