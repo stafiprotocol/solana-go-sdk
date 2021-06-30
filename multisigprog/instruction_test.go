@@ -72,7 +72,7 @@ func TestMultisigTransfer(t *testing.T) {
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	seed:="3222"
+	seed:="3332"
 	transactionAccountPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, multisigProgramIDDev)
 
 	fmt.Println("createMultisig txHash:", txHash)
@@ -200,7 +200,7 @@ func TestMultisigTransfer(t *testing.T) {
 	})
 
 	if err != nil {
-		fmt.Printf("generate Approve tx error, err: %v\n", err)
+		fmt.Printf("b generate Approve tx error, err: %v\n", err)
 	}
 
 	// t.Log("rawtx base58:", base58.Encode(rawTx))
@@ -208,7 +208,64 @@ func TestMultisigTransfer(t *testing.T) {
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	fmt.Println("Approve txHash:", txHash)
+	fmt.Println("b Approve txHash:", txHash)
+
+
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			multisigprog.Approve(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				multiSigner,
+				transactionAccountPubkey,
+				accountA.PublicKey,
+				remainingAccounts,
+			),
+		},
+		Signers:         []types.Account{accountA, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("a generate Approve tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("a Approve txHash:", txHash)
+
+
+
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			multisigprog.Approve(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				multiSigner,
+				transactionAccountPubkey,
+				accountC.PublicKey,
+				remainingAccounts,
+			),
+		},
+		Signers:         []types.Account{accountC, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("c generate Approve tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("c Approve txHash:", txHash)
 }
 
 func TestCreateAccountEncode(t *testing.T) {
@@ -968,14 +1025,7 @@ func splitNewToNew() {
 	log.Println("txHash:", txSig)
 }
 
-func TestGetMultisigTxInfo(t *testing.T) {
-	c := client.NewClient("https://solana-dev-rpc.wetez.io")
-	info, err := c.GetMultisigTxAccountInfo(context.Background(), "Gf7e1YydmrpF7McPam6wXVfZ1rmaKQRvRtA4YGNY1epy")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Printf("%+v", info))
-}
+
 
 func TestBaseToHex(t *testing.T) {
 	pubkey := common.PublicKeyFromString("9x6WP6TCYGRMvxZTqLmmNgbZCWCWTP9Roq9vVNrmphjx")
@@ -989,14 +1039,13 @@ func TestBaseToHex(t *testing.T) {
 	pubkey = common.PublicKeyFromString("9Riwnxn53S4wmy5h5nbQN1gxTCm1EvgqB4Gc5aKDAPyc")
 	t.Log(hex.EncodeToString(pubkey.Bytes()))
 
-	bts, _ := base58.Decode("GUEnfWC7MMX2B6YNZwHo7ZdxbGNJFpz7wJyc8oiBReCg117UUVvZDmnEsGDgeswHjmPkQQf86KpTfVeHPy1xCsD")
+	bts, _ := base58.Decode("5rXY5Vcp8mhMgX9gR1AwDM712rZvGBd9iPuRCgjFTNccgUEkpWRgC42vjXyoYGDATNMBi29R3GJ6xxidtkMdqjtE")
 	t.Log(hex.EncodeToString(bts))
 	pubkey = common.PublicKeyFromString("8pFiM2vyEzyYL7oJqaK2CgHPnARFdziM753rDHWsnhU1")
 	t.Log(hex.EncodeToString(pubkey.Bytes()))
 	bts, _ = base58.Decode("5dK58gKYcX1aNVvueLWEKPjcMBEAVgppkrhe1wjh8WCA")
 	t.Log(hex.EncodeToString(bts))
-	bts, _ = base58.Decode("ojS2XCqRwGSEsukyVKKkg1xx8W2KyxvdnTHtTqEQ6Ye")
+	bts, _ = base58.Decode("FqjS1yAm8ycmVh2RP8CjqHLTsQCNiQH5sn8TFXozRNQ8")
 	t.Log(hex.EncodeToString(bts))
-	bts, _ = base58.Decode("5KshHV9Qvj7mHvLtxwttgjPh7a37qX3FZh6SDVrM26sYrkEywi6fb1jR53R2XkLCswXeuB2b2uNBX11tydK9MAyq")
-	t.Log(hex.EncodeToString(bts))
+	
 }

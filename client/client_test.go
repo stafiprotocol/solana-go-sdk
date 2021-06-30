@@ -103,3 +103,12 @@ func TestGetStakeAccountInfo(t *testing.T) {
 	t.Log(fmt.Sprintf("%+v", account))
 
 }
+
+func TestGetMultisigTxInfo(t *testing.T) {
+	c := client.NewClient("http://127.0.0.1:8899")
+	info, err := c.GetMultisigTxAccountInfo(context.Background(), "5MnYgCBgZu6RrA1uRgWD2NxCe8wCvPD6JYJJAnGPe3Hy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Printf("%+v", info))
+}

@@ -16,11 +16,11 @@ var (
 )
 
 func init() {
-	createMultisigHash := sha256.Sum256([]byte("global::create_multisig"))
+	createMultisigHash := sha256.Sum256([]byte("global:create_multisig"))
 	copy(InstructionCreateMultisig[:], createMultisigHash[:8])
-	createTransactionHash := sha256.Sum256([]byte("global::create_transaction"))
+	createTransactionHash := sha256.Sum256([]byte("global:create_transaction"))
 	copy(InstructionCreateTransaction[:], createTransactionHash[:8])
-	approveHash := sha256.Sum256([]byte("global::approve"))
+	approveHash := sha256.Sum256([]byte("global:approve"))
 	copy(InstructionApprove[:], approveHash[:8])
 }
 
