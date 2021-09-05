@@ -5,8 +5,8 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"testing"
+	"time"
 
 	"github.com/mr-tron/base58"
 	"github.com/stafiprotocol/solana-go-sdk/client"
@@ -17,8 +17,8 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var multisigProgramIDDev = common.PublicKeyFromString("C4cJMqZM9eDoQdHw2HJW8WHha8h1CPRNVRJEykUFKUVk")
-var localClient = "http://127.0.0.1:8899"
+var multisigProgramIDDev = common.PublicKeyFromString("JD2YcyQA3qLv5AsgU1wj67VMPAz3bSSf1eamViZcojqn")
+var localClient = "https://api.devnet.solana.com"
 
 func TestMultisigTransfer(t *testing.T) {
 	c := client.NewClient(localClient)
@@ -72,12 +72,13 @@ func TestMultisigTransfer(t *testing.T) {
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	seed:="3332"
+	seed := "8111"
 	transactionAccountPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, multisigProgramIDDev)
 
 	fmt.Println("createMultisig txHash:", txHash)
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
 	fmt.Println("multisig account:", multisigAccount.PublicKey.ToBase58())
+	fmt.Println("multisig account nonce", nonce)
 	fmt.Println("transaction account:", transactionAccountPubkey.ToBase58())
 	fmt.Println("multiSigner:", multiSigner.ToBase58())
 	fmt.Println("accountA", accountA.PublicKey.ToBase58())
@@ -210,7 +211,6 @@ func TestMultisigTransfer(t *testing.T) {
 	}
 	fmt.Println("b Approve txHash:", txHash)
 
-
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
 			multisigprog.Approve(
@@ -237,8 +237,6 @@ func TestMultisigTransfer(t *testing.T) {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
 	fmt.Println("a Approve txHash:", txHash)
-
-
 
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -371,21 +369,6 @@ func TestDecodeBlockHash(t *testing.T) {
 	a7, _ := hex.DecodeString("02ecfa8e8d9c1b690ce8ecdbcbffcab4ee3cbbd28a1bfbc461e2a5c7c72fd6076e6c198e875bb944041f768938cc701c134881dfe5ea899e15c6b65ce69d78aa0cb53d7a26c46a66dcffafcbfde4e816952dea4fb7c6f6428ac2741a498a4ee05386dea9b6fc0c6672ceb017ab0d72fdec67e2e0358f3884fcb7e46d14265cb30602010306741cbe0cf9ee6e876d15c424bf13ecafe5cc44b4826647ef2935989faf7cb406ad18ced39b21a5db962fc624926dbd329d9a366c1247e8d46afabcf4b6f85a04730ca98ea9102311f5fed863ae1b5d9e2611185044c54391e7f49d2de73bc19e06a7d517192c5c51218cc94c3d4af17f58daee089ba1fd44e3dbd98a00000000489f06d61e0eacb7c70cb77bc61378b4592404d566a7f695c859f673f8fff9c08c78a414865fd46375d0ff861a917425f375a69ca3ec51a46223f58d3af8efd953da38e1d967a736d37c32a2ca9e82f41dd00f416db8f2d48080a06c7f29cc620104040502010380019207a387662c6afa000000000000000000000000000000000000000000000000000000000000000002000000c886d0a583199cc093143c89901fa9f4d554aefd1e24d3ccba1e780d36a937ae0101ad18ced39b21a5db962fc624926dbd329d9a366c1247e8d46afabcf4b6f85a0400010c0000000200000000ca9a3b00000000")
 	t.Log(base58.Encode(a7))
 
-}
-
-func TestGetTx(t *testing.T) {
-	c := client.NewClient(localClient)
-	tx, err := c.GetConfirmedTransaction(context.Background(), "3y6Ruhb2Bsmt6ankJSgyWu4yvarYtkqzj4GHz9Do2xgD")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Sprintf("%+v", tx))
-	t.Log(fmt.Sprintf("%+v", tx.Transaction.Message.AccountKeys))
-	block, err := c.GetConfirmedBlock(context.Background(), tx.Slot)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Sprintf("%+v", block.Blockhash))
 }
 
 func TestMultisigStake(t *testing.T) {
@@ -725,7 +708,7 @@ func TestMultisigSplit(t *testing.T) {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
 
-	validatorPubkey := common.PublicKeyFromString("G1WG6ukxbRHRCvLDeAhKkbwXpdsjX4VbsrBFM8xFCUV2")
+	validatorPubkey := common.PublicKeyFromString("J486gQBsfRAWKNmKhax9Qs1tBURJwp3k25YnaaBYNvjx")
 	stakeInstruction := stakeprog.DelegateStake(stakeAccount.PublicKey, multiSigner, validatorPubkey)
 
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
@@ -816,7 +799,34 @@ func TestMultisigSplit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("send tx error, err: %v\n", err)
 	}
-	t.Log("Approve txHash:", txHash)
+	t.Log("b Approve txHash:", txHash)
+
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			multisigprog.Approve(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				multiSigner,
+				transactionAccount.PublicKey,
+				accountA.PublicKey,
+				remainingAccounts,
+			),
+		},
+		Signers:         []types.Account{accountA, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		t.Fatalf("generate Approve tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		t.Fatalf("send tx error, err: %v\n", err)
+	}
+	t.Log("a Approve txHash:", txHash)
 
 	//================================================
 	// split operate
@@ -840,6 +850,14 @@ func TestMultisigSplit(t *testing.T) {
 				1000000000,
 				200,
 			),
+			// stakeprog.Initialize(
+			// 	splitStakeAccount.PublicKey,
+			// 	stakeprog.Authorized{
+			// 		Staker:     multiSigner,
+			// 		Withdrawer: multiSigner,
+			// 	},
+			// 	stakeprog.Lockup{},
+			// ),
 		},
 		Signers:         []types.Account{feePayer, splitTransactionAccount, splitStakeAccount},
 		FeePayer:        feePayer.PublicKey,
@@ -914,7 +932,38 @@ func TestMultisigSplit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("send tx error, err: %v\n", err)
 	}
-	t.Log("Approve txHash:", txHash)
+	t.Log("b Approve txHash:", txHash)
+
+	res, err = c.GetRecentBlockhash(context.Background())
+	if err != nil {
+		t.Fatalf("get recent block hash error, err: %v\n", err)
+	}
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			multisigprog.Approve(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				multiSigner,
+				splitTransactionAccount.PublicKey,
+				accountA.PublicKey,
+				remainingAccounts,
+			),
+		},
+		Signers:         []types.Account{accountA, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		t.Fatalf("generate Approve tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		t.Fatalf("send tx error, err: %v\n", err)
+	}
+	t.Log("a Approve txHash:", txHash)
 }
 
 func TestSplit(t *testing.T) {
@@ -928,105 +977,6 @@ func TestSplit(t *testing.T) {
 	t.Log(ed25519.Verify(feePayer.PublicKey[:], []byte("34bwmgT1NtcL8FayGiFSB9F1qZFGPjhbDfTaZRoM2AXgjrpo"), sig))
 }
 
-func splitNewToNew() {
-	c := client.NewClient(client.DevnetRPCEndpoint)
-
-	res, err := c.GetRecentBlockhash(context.Background())
-	if err != nil {
-		log.Fatalf("get recent block hash error, err: %v\n", err)
-	}
-	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
-
-	c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
-
-	newStakeAccount := types.NewAccount()
-	newSplitStakeAccount := types.NewAccount()
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			sysprog.CreateAccount(
-				feePayer.PublicKey,
-				newStakeAccount.PublicKey,
-				common.StakeProgramID,
-				2000000000,
-				200,
-			),
-			stakeprog.Initialize(
-				newStakeAccount.PublicKey,
-				stakeprog.Authorized{
-					Staker:     feePayer.PublicKey,
-					Withdrawer: feePayer.PublicKey,
-				},
-				stakeprog.Lockup{},
-			),
-		},
-		Signers:         []types.Account{feePayer, newStakeAccount},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		log.Fatalf("generate tx error, err: %v\n", err)
-	}
-
-	txSig, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		log.Fatalf("send tx error, err: %v\n", err)
-	}
-
-	log.Println("txHash:", txSig)
-
-	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			sysprog.CreateAccount(
-				feePayer.PublicKey,
-				newSplitStakeAccount.PublicKey,
-				common.StakeProgramID,
-				0,
-				200,
-			),
-		},
-		Signers:         []types.Account{feePayer, newSplitStakeAccount},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		log.Fatalf("generate tx error, err: %v\n", err)
-	}
-
-	txSig, err = c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		log.Fatalf("send tx error, err: %v\n", err)
-	}
-
-	log.Println("txHash:", txSig)
-
-	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			stakeprog.Split(
-				newStakeAccount.PublicKey,
-				feePayer.PublicKey,
-				newSplitStakeAccount.PublicKey,
-				1e8,
-			),
-		},
-		Signers:         []types.Account{feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		log.Fatalf("generate tx error, err: %v\n", err)
-	}
-
-	txSig, err = c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		log.Fatalf("send tx error, err: %v\n", err)
-	}
-
-	log.Println("txHash:", txSig)
-}
-
-
-
 func TestBaseToHex(t *testing.T) {
 	pubkey := common.PublicKeyFromString("9x6WP6TCYGRMvxZTqLmmNgbZCWCWTP9Roq9vVNrmphjx")
 	t.Log(hex.EncodeToString(pubkey.Bytes()))
@@ -1039,13 +989,233 @@ func TestBaseToHex(t *testing.T) {
 	pubkey = common.PublicKeyFromString("9Riwnxn53S4wmy5h5nbQN1gxTCm1EvgqB4Gc5aKDAPyc")
 	t.Log(hex.EncodeToString(pubkey.Bytes()))
 
-	bts, _ := base58.Decode("5rXY5Vcp8mhMgX9gR1AwDM712rZvGBd9iPuRCgjFTNccgUEkpWRgC42vjXyoYGDATNMBi29R3GJ6xxidtkMdqjtE")
+	bts, _ := base58.Decode("3x6Pn8WKF6z8dtSU1pCoptZ8v83gw5dgL1NZXJtvimStpaq92Q8cy8NwSBJRRUWpQvXchBixw1fxdp12GUfRJs4n")
 	t.Log(hex.EncodeToString(bts))
 	pubkey = common.PublicKeyFromString("8pFiM2vyEzyYL7oJqaK2CgHPnARFdziM753rDHWsnhU1")
 	t.Log(hex.EncodeToString(pubkey.Bytes()))
 	bts, _ = base58.Decode("5dK58gKYcX1aNVvueLWEKPjcMBEAVgppkrhe1wjh8WCA")
 	t.Log(hex.EncodeToString(bts))
-	bts, _ = base58.Decode("FqjS1yAm8ycmVh2RP8CjqHLTsQCNiQH5sn8TFXozRNQ8")
+	bts, _ = base58.Decode("8XS3TqX4dEkEjeNGRjCCcwfGeNJEuKCgRetL6UAmtXVT")
 	t.Log(hex.EncodeToString(bts))
-	
+
+}
+
+func TestMultisigSetThreshold(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetRecentBlockhash(context.Background())
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
+
+	_, err = c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	multisigAccount := types.NewAccount()
+	accountA := types.NewAccount()
+	accountB := types.NewAccount()
+	accountC := types.NewAccount()
+	multiSigner, nonce, err := common.FindProgramAddress([][]byte{multisigAccount.PublicKey.Bytes()}, multisigProgramIDDev)
+	if err != nil {
+		fmt.Println(err)
+	}
+	owners := []common.PublicKey{accountA.PublicKey, accountB.PublicKey, accountC.PublicKey}
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			sysprog.CreateAccount(
+				feePayer.PublicKey,
+				multisigAccount.PublicKey,
+				multisigProgramIDDev,
+				1000000000,
+				1000,
+			),
+			multisigprog.CreateMultisig(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				owners,
+				2,
+				uint8(nonce),
+			),
+		},
+		Signers:         []types.Account{feePayer, multisigAccount},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	seed := "8434"
+	transactionAccountPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, multisigProgramIDDev)
+
+	fmt.Println("createMultisig txHash:", txHash)
+	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
+	fmt.Println("multisig account:", multisigAccount.PublicKey.ToBase58())
+	fmt.Println("transaction account:", transactionAccountPubkey.ToBase58())
+	fmt.Println("multiSigner:", multiSigner.ToBase58())
+	fmt.Println("accountA", accountA.PublicKey.ToBase58())
+	fmt.Println("accountB", accountB.PublicKey.ToBase58())
+	fmt.Println("accountC", accountC.PublicKey.ToBase58())
+
+	for {
+		time.Sleep(5 * time.Second)
+		info, err := c.GetMultisigInfoAccountInfo(context.Background(), multisigAccount.PublicKey.ToBase58())
+		if err != nil {
+			continue
+		}
+		t.Log(fmt.Sprintf("multisig account info %+v", info))
+		break
+	}
+
+	changeThresholdInstruct := multisigprog.ChangeThreshold(multisigProgramIDDev, multisigAccount.PublicKey, multiSigner, 1)
+	programIds := make([]common.PublicKey, 0)
+	accountMetas := make([][]types.AccountMeta, 0)
+	datas := make([][]byte, 0)
+	instructions := make([]types.Instruction, 0)
+	programIds = append(programIds, multisigProgramIDDev)
+	accountMetas = append(accountMetas, changeThresholdInstruct.Accounts)
+	datas = append(datas, changeThresholdInstruct.Data)
+	instructions = append(instructions, changeThresholdInstruct)
+
+	res, err = c.GetRecentBlockhash(context.Background())
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			sysprog.CreateAccountWithSeed(
+				feePayer.PublicKey,
+				transactionAccountPubkey,
+				feePayer.PublicKey,
+				multisigProgramIDDev,
+				seed,
+				1000000000,
+				1000,
+			),
+			multisigprog.CreateTransaction(
+				multisigProgramIDDev,
+				programIds,
+				accountMetas,
+				datas,
+				multisigAccount.PublicKey,
+				transactionAccountPubkey,
+				accountA.PublicKey,
+			),
+		},
+		Signers:         []types.Account{accountA, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("generate createTransaction tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("Create Transaction txHash:", txHash)
+
+	remainingAccounts := multisigprog.GetRemainAccounts(instructions)
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			multisigprog.Approve(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				multiSigner,
+				transactionAccountPubkey,
+				accountB.PublicKey,
+				remainingAccounts,
+			),
+		},
+		Signers:         []types.Account{accountB, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("b generate Approve tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("b Approve txHash:", txHash)
+
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			multisigprog.Approve(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				multiSigner,
+				transactionAccountPubkey,
+				accountA.PublicKey,
+				remainingAccounts,
+			),
+		},
+		Signers:         []types.Account{accountA, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("a generate Approve tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("a Approve txHash:", txHash)
+
+	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			multisigprog.Approve(
+				multisigProgramIDDev,
+				multisigAccount.PublicKey,
+				multiSigner,
+				transactionAccountPubkey,
+				accountC.PublicKey,
+				remainingAccounts,
+			),
+		},
+		Signers:         []types.Account{accountC, feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("c generate Approve tx error, err: %v\n", err)
+	}
+
+	// t.Log("rawtx base58:", base58.Encode(rawTx))
+	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("c Approve txHash:", txHash)
+
+	for {
+		time.Sleep(5 * time.Second)
+		info, err := c.GetMultisigInfoAccountInfo(context.Background(), multisigAccount.PublicKey.ToBase58())
+		if err != nil {
+			continue
+		}
+		t.Log(fmt.Sprintf("multisig account info %+v", info))
+		break
+	}
 }

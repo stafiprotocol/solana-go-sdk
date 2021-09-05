@@ -105,8 +105,18 @@ func TestGetStakeAccountInfo(t *testing.T) {
 }
 
 func TestGetMultisigTxInfo(t *testing.T) {
-	c := client.NewClient("http://127.0.0.1:8899")
-	info, err := c.GetMultisigTxAccountInfo(context.Background(), "5MnYgCBgZu6RrA1uRgWD2NxCe8wCvPD6JYJJAnGPe3Hy")
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetMultisigTxAccountInfo(context.Background(), "Gn3Wzs1rbeJcTefiEwZ8c8vJZjNZeSm5WUxbYC5ji74F")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Printf("%+v", info))
+}
+
+
+func TestGetMultisigInfoAccount(t *testing.T){
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetMultisigInfoAccountInfo(context.Background(), "8TNEsKSzFsi6b56JwhpHWLZf9mR81LGDcQQka5EtVux7")
 	if err != nil {
 		t.Fatal(err)
 	}

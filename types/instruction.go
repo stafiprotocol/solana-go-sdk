@@ -10,6 +10,6 @@ type CompiledInstruction struct {
 
 type Instruction struct {
 	ProgramID common.PublicKey
-	Accounts  []AccountMeta
-	Data      []byte
+	Accounts  []AccountMeta //accounts programs will use
+	Data      []byte        //instruct + params
 }

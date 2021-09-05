@@ -13,6 +13,8 @@ var (
 	InstructionCreateMultisig    Instruction
 	InstructionCreateTransaction Instruction
 	InstructionApprove           Instruction
+	InstructionSetOwners         Instruction
+	InstructionChangeThreshold   Instruction
 )
 
 func init() {
@@ -22,6 +24,10 @@ func init() {
 	copy(InstructionCreateTransaction[:], createTransactionHash[:8])
 	approveHash := sha256.Sum256([]byte("global:approve"))
 	copy(InstructionApprove[:], approveHash[:8])
+	setOwnersHash := sha256.Sum256([]byte("global:set_owners"))
+	copy(InstructionSetOwners[:], setOwnersHash[:8])
+	changeThresholdHash := sha256.Sum256([]byte("global:change_threshold"))
+	copy(InstructionChangeThreshold[:], changeThresholdHash[:8])
 }
 
 func CreateMultisig(
@@ -125,6 +131,35 @@ func Approve(
 	return types.Instruction{
 		ProgramID: programID,
 		Accounts:  append(accounts, remainingAccounts...),
+		Data:      data,
+	}
+}
+
+func ChangeThreshold(
+	programID,
+	multisigAccount,
+	multiSiner common.PublicKey,
+	threshold uint64) types.Instruction {
+
+	data, err := common.SerializeData(struct {
+		Instruction Instruction
+		Threshold   uint64
+	}{
+		Instruction: InstructionChangeThreshold,
+		Threshold:   threshold,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	accounts := []types.AccountMeta{
+		{PubKey: multisigAccount, IsSigner: false, IsWritable: true},
+		{PubKey: multiSiner, IsSigner: true, IsWritable: false},
+	}
+
+	return types.Instruction{
+		ProgramID: programID,
+		Accounts:  accounts,
 		Data:      data,
 	}
 }
