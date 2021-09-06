@@ -17,7 +17,7 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var multisigProgramIDDev = common.PublicKeyFromString("JD2YcyQA3qLv5AsgU1wj67VMPAz3bSSf1eamViZcojqn")
+var multisigProgramIDDev = common.PublicKeyFromString("GfNeBVNszjgfV7gae6G4FGMsUHUrnXoNV1Q8bNzsfHRv")
 var localClient = "https://api.devnet.solana.com"
 
 func TestMultisigTransfer(t *testing.T) {
@@ -771,7 +771,7 @@ func TestMultisigSplit(t *testing.T) {
 		{PubKey: common.StakeProgramID, IsWritable: false, IsSigner: false},
 	}
 	remainingAccounts = append(remainingAccounts, stakeInstruction.Accounts...)
-	for i, _ := range remainingAccounts {
+	for i := range remainingAccounts {
 		remainingAccounts[i].IsSigner = false
 	}
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{

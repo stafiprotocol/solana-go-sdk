@@ -11,7 +11,7 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/sysprog"
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
-
+var multisigProgramIDDev = common.PublicKeyFromString("GfNeBVNszjgfV7gae6G4FGMsUHUrnXoNV1Q8bNzsfHRv")
 func TestCreateAccountWithSeed(t *testing.T) {
 	type args struct {
 		fromPubkey       common.PublicKey
@@ -514,7 +514,7 @@ func ExampleCreateAccount() {
 			sysprog.CreateAccount(
 				feePayer.PublicKey,
 				multisigAccount.PublicKey,
-				common.MultisigProgramID,
+				multisigProgramIDDev,
 				1000000000,
 				200,
 			),
@@ -549,7 +549,7 @@ func ExampleCreateAccountWithSeed() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	multisigAccount := common.CreateWithSeed(feePayer.PublicKey, "hello", common.MultisigProgramID)
+	multisigAccount := common.CreateWithSeed(feePayer.PublicKey, "hello", multisigProgramIDDev)
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -557,7 +557,7 @@ func ExampleCreateAccountWithSeed() {
 				feePayer.PublicKey,
 				multisigAccount,
 				feePayer.PublicKey,
-				common.MultisigProgramID,
+				multisigProgramIDDev,
 				"hello",
 				1000000000,
 				200,
