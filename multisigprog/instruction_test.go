@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -72,7 +73,7 @@ func TestMultisigTransfer(t *testing.T) {
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	seed := "8111"
+	seed := fmt.Sprintf("8112%d",rand.Int())
 	transactionAccountPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, multisigProgramIDDev)
 
 	fmt.Println("createMultisig txHash:", txHash)

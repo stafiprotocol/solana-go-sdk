@@ -3,6 +3,7 @@ package multisigprog
 import (
 	"crypto/sha256"
 
+	"github.com/near/borsh-go"
 	"github.com/stafiprotocol/solana-go-sdk/common"
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
@@ -37,7 +38,7 @@ func CreateMultisig(
 	threshold uint64,
 	nonce uint8) types.Instruction {
 
-	data, err := common.SerializeData(struct {
+	data, err := borsh.Serialize(struct {
 		Instruction Instruction
 		Owners      []common.PublicKey
 		Threshold   uint64
