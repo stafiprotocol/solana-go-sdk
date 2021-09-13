@@ -11,24 +11,27 @@ import (
 type Instruction [8]byte
 
 var (
-	InstructionCreateBridge    Instruction
-	InstructionCreateProposal  Instruction
-	InstructionApprove         Instruction
-	InstructionSetOwners       Instruction
-	InstructionChangeThreshold Instruction
+	InstructionCreateBridge        Instruction
+	InstructionCreateMintProposal  Instruction
+	InstructionApproveMintProposal Instruction
+	InstructionSetOwners           Instruction
+	InstructionChangeThreshold     Instruction
+	InstructionSetResourceId       Instruction
 )
 
 func init() {
 	createBridgeHash := sha256.Sum256([]byte("global:create_bridge"))
 	copy(InstructionCreateBridge[:], createBridgeHash[:8])
-	createProposalHash := sha256.Sum256([]byte("global:create_proposal"))
-	copy(InstructionCreateProposal[:], createProposalHash[:8])
-	approveHash := sha256.Sum256([]byte("global:approve"))
-	copy(InstructionApprove[:], approveHash[:8])
+	createMintProposalHash := sha256.Sum256([]byte("global:create_mint_proposal"))
+	copy(InstructionCreateMintProposal[:], createMintProposalHash[:8])
+	approveMintProposalHash := sha256.Sum256([]byte("global:approve_mint_proposal"))
+	copy(InstructionApproveMintProposal[:], approveMintProposalHash[:8])
 	setOwnersHash := sha256.Sum256([]byte("global:set_owners"))
 	copy(InstructionSetOwners[:], setOwnersHash[:8])
 	changeThresholdHash := sha256.Sum256([]byte("global:change_threshold"))
 	copy(InstructionChangeThreshold[:], changeThresholdHash[:8])
+	setResourceIdHash := sha256.Sum256([]byte("global:set_resource_id"))
+	copy(InstructionSetResourceId[:], setResourceIdHash[:8])
 }
 
 func CreateBridge(
@@ -37,7 +40,8 @@ func CreateBridge(
 	owners []common.PublicKey,
 	threshold uint64,
 	nonce uint8,
-	resourceIdToTokenProg map[[32]byte]common.PublicKey) types.Instruction {
+	resourceIdToMint map[[32]byte]common.PublicKey,
+	admin common.PublicKey) types.Instruction {
 
 	data, err := borsh.Serialize(struct {
 		Instruction           Instruction
@@ -45,12 +49,14 @@ func CreateBridge(
 		Threshold             uint64
 		Nonce                 uint8
 		ResourceIdToTokenProg map[[32]byte]common.PublicKey
+		Admin                 common.PublicKey
 	}{
 		Instruction:           InstructionCreateBridge,
 		Owners:                owners,
 		Threshold:             threshold,
 		Nonce:                 nonce,
-		ResourceIdToTokenProg: resourceIdToTokenProg,
+		ResourceIdToTokenProg: resourceIdToMint,
+		Admin:                 admin,
 	})
 	if err != nil {
 		panic(err)
@@ -72,25 +78,29 @@ type ProposalUsedAccount struct {
 	IsWritable bool
 }
 
-func CreateProposal(
+func CreateMintProposal(
 	programID common.PublicKey,
-	txUsedProgramID []common.PublicKey,
-	txUsedAccounts [][]types.AccountMeta,
-	txInstructionData [][]byte,
 	bridgeAccount common.PublicKey,
 	proposalAccount common.PublicKey,
-	ownerAccount common.PublicKey) types.Instruction {
+	proposerAccount common.PublicKey,
+	resourceId [32]byte,
+	to common.PublicKey,
+	amount uint64,
+	tokenProgram common.PublicKey,
+) types.Instruction {
 
 	data, err := common.SerializeData(struct {
-		Instruction       Instruction
-		TxUsedProgramID   []common.PublicKey
-		TxUsedAccounts    [][]types.AccountMeta
-		TxInstructionData [][]byte
+		Instruction  Instruction
+		ResourceId   [32]byte
+		To           common.PublicKey
+		Amount       uint64
+		TokenProgram common.PublicKey
 	}{
-		Instruction:       InstructionCreateProposal,
-		TxUsedProgramID:   txUsedProgramID,
-		TxUsedAccounts:    txUsedAccounts,
-		TxInstructionData: txInstructionData,
+		Instruction:  InstructionCreateMintProposal,
+		ResourceId:   resourceId,
+		To:           to,
+		Amount:       amount,
+		TokenProgram: tokenProgram,
 	})
 	if err != nil {
 		panic(err)
@@ -101,25 +111,28 @@ func CreateProposal(
 		Accounts: []types.AccountMeta{
 			{PubKey: bridgeAccount, IsSigner: false, IsWritable: false},
 			{PubKey: proposalAccount, IsSigner: false, IsWritable: true},
-			{PubKey: ownerAccount, IsSigner: true, IsWritable: false},
+			{PubKey: proposerAccount, IsSigner: true, IsWritable: false},
 			{PubKey: common.SysVarRentPubkey, IsSigner: false, IsWritable: false},
 		},
 		Data: data,
 	}
 }
 
-func Approve(
+func ApproveMintProposal(
 	programID,
 	bridgeAccount,
 	multiSiner,
 	proposalAccount,
-	ownerAccount common.PublicKey,
-	remainingAccounts []types.AccountMeta) types.Instruction {
+	approverAccount common.PublicKey,
+	mintAccount common.PublicKey,
+	to common.PublicKey,
+	tokenProgram common.PublicKey,
+) types.Instruction {
 
 	data, err := common.SerializeData(struct {
 		Instruction Instruction
 	}{
-		Instruction: InstructionApprove,
+		Instruction: InstructionApproveMintProposal,
 	})
 	if err != nil {
 		panic(err)
@@ -129,12 +142,15 @@ func Approve(
 		{PubKey: bridgeAccount, IsSigner: false, IsWritable: false},
 		{PubKey: multiSiner, IsSigner: false, IsWritable: false},
 		{PubKey: proposalAccount, IsSigner: false, IsWritable: true},
-		{PubKey: ownerAccount, IsSigner: true, IsWritable: false},
+		{PubKey: approverAccount, IsSigner: true, IsWritable: false},
+		{PubKey: mintAccount, IsSigner: false, IsWritable: true},
+		{PubKey: to, IsSigner: false, IsWritable: true},
+		{PubKey: tokenProgram, IsSigner: false, IsWritable: true},
 	}
 
 	return types.Instruction{
 		ProgramID: programID,
-		Accounts:  append(accounts, remainingAccounts...),
+		Accounts:  accounts,
 		Data:      data,
 	}
 }

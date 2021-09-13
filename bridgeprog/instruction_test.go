@@ -16,8 +16,8 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var multisigProgramIDDev = common.PublicKeyFromString("3STyarNLwxhXay9oCXV1LKHTgrVUn3VFgJ2u2mMQFDuV")
-var token = common.PublicKeyFromString("97XzCoNwKUqWuyHixgNxrBKc1RZTuNQau2ho87JjteZH")
+var bridgeProgramIdDev = common.PublicKeyFromString("ExSFgFAnMLSGSY9MJaeBhhCgiwKJ3G2hDv5UsyphMgqi")
+var mintAccountPubkey = common.PublicKeyFromString("EuEw3HUYJ8A2HMbCeZKN9CHykAitSdNPZz3HbgorCgvp")
 var localClient = "https://api.devnet.solana.com"
 
 func TestCreateBridge(t *testing.T) {
@@ -38,7 +38,8 @@ func TestCreateBridge(t *testing.T) {
 	accountA := types.NewAccount()
 	accountB := types.NewAccount()
 	accountC := types.NewAccount()
-	multiSigner, nonce, err := common.FindProgramAddress([][]byte{bridgeAccount.PublicKey.Bytes()}, multisigProgramIDDev)
+	accountE := types.NewAccount()
+	multiSigner, nonce, err := common.FindProgramAddress([][]byte{bridgeAccount.PublicKey.Bytes()}, bridgeProgramIdDev)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -49,19 +50,20 @@ func TestCreateBridge(t *testing.T) {
 			sysprog.CreateAccount(
 				feePayer.PublicKey,
 				bridgeAccount.PublicKey,
-				multisigProgramIDDev,
+				bridgeProgramIdDev,
 				1000000000,
 				2000,
 			),
 			bridgeprog.CreateBridge(
-				multisigProgramIDDev,
+				bridgeProgramIdDev,
 				bridgeAccount.PublicKey,
 				owners,
 				2,
 				uint8(nonce),
 				map[[32]byte]common.PublicKey{
-					[32]byte{1}: token,
+					[32]byte{1}: mintAccountPubkey,
 				},
+				accountE.PublicKey,
 			),
 		},
 		Signers:         []types.Account{feePayer, bridgeAccount},
@@ -76,17 +78,18 @@ func TestCreateBridge(t *testing.T) {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
 	seed := "8111"
-	transactionAccountPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, multisigProgramIDDev)
+	mintProposalPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, bridgeProgramIdDev)
 
 	fmt.Println("createBridge txHash:", txHash)
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
 	fmt.Println("bridge account:", bridgeAccount.PublicKey.ToBase58())
 	fmt.Println("bridge account nonce", nonce)
-	fmt.Println("proposal account:", transactionAccountPubkey.ToBase58())
+	fmt.Println("proposal account:", mintProposalPubkey.ToBase58())
 	fmt.Println("multiSigner:", multiSigner.ToBase58())
 	fmt.Println("accountA", accountA.PublicKey.ToBase58(), hex.EncodeToString(accountA.PrivateKey))
 	fmt.Println("accountB", accountB.PublicKey.ToBase58(), hex.EncodeToString(accountB.PrivateKey))
 	fmt.Println("accountC", accountC.PublicKey.ToBase58(), hex.EncodeToString(accountC.PrivateKey))
+	fmt.Println("accountE", accountE.PublicKey.ToBase58(), hex.EncodeToString(accountE.PrivateKey))
 
 }
 
@@ -104,24 +107,25 @@ func TestBridgeMint(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	accountABytes, _ := hex.DecodeString("0e6d725aebffe99ea2df8be16f222a5fcf1fef0b4d4ae9883172eec9d7c93e126899273b7195a741b994231d48d746fc13c32c8a5f040e55e36fe2a710650535")
-	accountBBytes, _ := hex.DecodeString("688879a73c93cbf70a719f10d98b055508885ec4db9264d0ec553c8894806b690e284891732850987dd6bddf34a59a36833d971bac36b2ef24b26742ea68ef5b")
-	accountCBytes, _ := hex.DecodeString("0d2bbf4118201453c89674f86f1e01a3286bace6d1afa7f3fda8aaa1263ae4388028f190c2780590b8e7656b259c2c40d55180131f2d70c03c8e732379b83a8f")
-	multiSigner, nonce := common.PublicKeyFromString("EJceTPUiJJiT9RjqQWXRh65EgTbztqGPUbRgPcwpqv14"), 251
+	accountABytes, _ := hex.DecodeString("79a1a79cc114c0d7e39085c53991d9458c8a721163d03580d395bf4e386f6232e2d1187f8c7cc750c2675e0fbf34f3355aac23b4cbf56de3aa505e744acad975")
+	accountBBytes, _ := hex.DecodeString("9da195a5edcf6eebd8096ee1e72ce1089fae78562499db339d60995eb91e050eac8c6545265b7e20e2d5ece1e6e541fb75fe508a8341fb9778ab5f00bce04a74")
+	accountCBytes, _ := hex.DecodeString("29fb8d928f919961c0208e6c834110cfbb4b905092665b502ce3d3ec9bdaf4c1c315673697e073a6f48433b3f9212cc0456a44415d1a20614d1449a6811a858e")
+	multiSigner, nonce := common.PublicKeyFromString("E1cbabe5sfiLHYn7ANVoRwWMYFz7p25Aq9apJuhpivzR"), 255
 
-	bridgeAccountPubkey := common.PublicKeyFromString("EbSMYeu5NXowH3vd2rJENML9qAzzQxCRzRyKSGRKFrqE")
+	bridgeAccountPubkey := common.PublicKeyFromString("8B29iREQvQgmiyZSdzRrgEsh56W3m2Mpna5xvGG6jAEf")
 	accountA := types.AccountFromPrivateKeyBytes(accountABytes)
 	accountB := types.AccountFromPrivateKeyBytes(accountBBytes)
 	accountC := types.AccountFromPrivateKeyBytes(accountCBytes)
+
 	accountD := types.NewAccount()
 	rand.Seed(time.Now().Unix())
-	seed := fmt.Sprintf("8111%d", rand.Int())
-	transactionAccountPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, multisigProgramIDDev)
+	seed := fmt.Sprintf("proposal:%d", rand.Int())
+	mintProposalPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, bridgeProgramIdDev)
 
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
 	fmt.Println("multisig account:", bridgeAccountPubkey.ToBase58())
 	fmt.Println("multisig account nonce", nonce)
-	fmt.Println("transaction account:", transactionAccountPubkey.ToBase58())
+	fmt.Println("mint proposal account:", mintProposalPubkey.ToBase58())
 	fmt.Println("multiSigner:", multiSigner.ToBase58())
 	fmt.Println("accountA", accountA.PublicKey.ToBase58())
 	fmt.Println("accountB", accountB.PublicKey.ToBase58())
@@ -132,23 +136,6 @@ func TestBridgeMint(t *testing.T) {
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
-
-	mintInstruct := tokenprog.MintTo(
-		token,
-		accountD.PublicKey,
-		multiSigner,
-		[]common.PublicKey{},
-		10000000000,
-	)
-	programIds := make([]common.PublicKey, 0)
-	accountMetas := make([][]types.AccountMeta, 0)
-	datas := make([][]byte, 0)
-	instructions := make([]types.Instruction, 0)
-
-	programIds = append(programIds, common.TokenProgramID)
-	accountMetas = append(accountMetas, mintInstruct.Accounts)
-	datas = append(datas, mintInstruct.Data)
-	instructions = append(instructions, mintInstruct)
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -161,14 +148,14 @@ func TestBridgeMint(t *testing.T) {
 			),
 			tokenprog.InitializeAccount(
 				accountD.PublicKey,
-				token,
+				mintAccountPubkey,
 				multiSigner,
 			),
 			sysprog.CreateAccountWithSeed(
 				feePayer.PublicKey,
-				transactionAccountPubkey,
+				mintProposalPubkey,
 				feePayer.PublicKey,
-				multisigProgramIDDev,
+				bridgeProgramIdDev,
 				seed,
 				1000000000,
 				1000,
@@ -186,7 +173,7 @@ func TestBridgeMint(t *testing.T) {
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	fmt.Println("create transaction account hash ", txHash)
+	fmt.Println("create mint proposal and to account hash ", txHash)
 
 	res, err = c.GetRecentBlockhash(context.Background())
 	if err != nil {
@@ -195,14 +182,14 @@ func TestBridgeMint(t *testing.T) {
 
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
-			bridgeprog.CreateProposal(
-				multisigProgramIDDev,
-				programIds,
-				accountMetas,
-				datas,
+			bridgeprog.CreateMintProposal(
+				bridgeProgramIdDev,
 				bridgeAccountPubkey,
-				transactionAccountPubkey,
+				mintProposalPubkey,
 				accountA.PublicKey,
+				[32]byte{1},
+				accountD.PublicKey,
+				common.TokenProgramID,
 			),
 		},
 		Signers:         []types.Account{accountA, feePayer},
@@ -214,23 +201,23 @@ func TestBridgeMint(t *testing.T) {
 		fmt.Printf("generate createTransaction tx error, err: %v\n", err)
 	}
 
-	// t.Log("rawtx base58:", base58.Encode(rawTx))
 	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	fmt.Println("Create Transaction txHash:", txHash)
+	fmt.Println("Create mint proposal account txHash:", txHash)
 
-	remainingAccounts := bridgeprog.GetRemainAccounts(instructions)
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
-			bridgeprog.Approve(
-				multisigProgramIDDev,
+			bridgeprog.ApproveMintProposal(
+				bridgeProgramIdDev,
 				bridgeAccountPubkey,
 				multiSigner,
-				transactionAccountPubkey,
+				mintProposalPubkey,
 				accountB.PublicKey,
-				remainingAccounts,
+				mintAccountPubkey,
+				accountD.PublicKey,
+				common.TokenProgramID,
 			),
 		},
 		Signers:         []types.Account{accountB, feePayer},
@@ -251,13 +238,15 @@ func TestBridgeMint(t *testing.T) {
 
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
-			bridgeprog.Approve(
-				multisigProgramIDDev,
+			bridgeprog.ApproveMintProposal(
+				bridgeProgramIdDev,
 				bridgeAccountPubkey,
 				multiSigner,
-				transactionAccountPubkey,
+				mintProposalPubkey,
 				accountA.PublicKey,
-				remainingAccounts,
+				mintAccountPubkey,
+				accountD.PublicKey,
+				common.TokenProgramID,
 			),
 		},
 		Signers:         []types.Account{accountA, feePayer},
@@ -278,13 +267,15 @@ func TestBridgeMint(t *testing.T) {
 
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
-			bridgeprog.Approve(
-				multisigProgramIDDev,
+			bridgeprog.ApproveMintProposal(
+				bridgeProgramIdDev,
 				bridgeAccountPubkey,
 				multiSigner,
-				transactionAccountPubkey,
+				mintProposalPubkey,
 				accountC.PublicKey,
-				remainingAccounts,
+				mintAccountPubkey,
+				accountD.PublicKey,
+				common.TokenProgramID,
 			),
 		},
 		Signers:         []types.Account{accountC, feePayer},
