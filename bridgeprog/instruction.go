@@ -82,9 +82,9 @@ func CreateMintProposal(
 	programID common.PublicKey,
 	bridgeAccount common.PublicKey,
 	proposalAccount common.PublicKey,
+	toAccount common.PublicKey,
 	proposerAccount common.PublicKey,
 	resourceId [32]byte,
-	to common.PublicKey,
 	amount uint64,
 	tokenProgram common.PublicKey,
 ) types.Instruction {
@@ -92,13 +92,11 @@ func CreateMintProposal(
 	data, err := common.SerializeData(struct {
 		Instruction  Instruction
 		ResourceId   [32]byte
-		To           common.PublicKey
 		Amount       uint64
 		TokenProgram common.PublicKey
 	}{
 		Instruction:  InstructionCreateMintProposal,
 		ResourceId:   resourceId,
-		To:           to,
 		Amount:       amount,
 		TokenProgram: tokenProgram,
 	})
@@ -111,6 +109,7 @@ func CreateMintProposal(
 		Accounts: []types.AccountMeta{
 			{PubKey: bridgeAccount, IsSigner: false, IsWritable: false},
 			{PubKey: proposalAccount, IsSigner: false, IsWritable: true},
+			{PubKey: toAccount, IsSigner: false, IsWritable: false},
 			{PubKey: proposerAccount, IsSigner: true, IsWritable: false},
 			{PubKey: common.SysVarRentPubkey, IsSigner: false, IsWritable: false},
 		},
@@ -175,6 +174,39 @@ func ChangeThreshold(
 	accounts := []types.AccountMeta{
 		{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
 		{PubKey: multiSiner, IsSigner: true, IsWritable: false},
+	}
+
+	return types.Instruction{
+		ProgramID: programID,
+		Accounts:  accounts,
+		Data:      data,
+	}
+}
+
+func SetResourceId(
+	programID,
+	bridgeAccount,
+	admin common.PublicKey,
+	resourceId [32]byte,
+	mint common.PublicKey,
+) types.Instruction {
+
+	data, err := common.SerializeData(struct {
+		Instruction Instruction
+		ResourceId  [32]byte
+		Mint        common.PublicKey
+	}{
+		Instruction: InstructionSetResourceId,
+		ResourceId:  resourceId,
+		Mint:        mint,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	accounts := []types.AccountMeta{
+		{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
+		{PubKey: admin, IsSigner: true, IsWritable: false},
 	}
 
 	return types.Instruction{

@@ -19,7 +19,7 @@ type GetBridgeAccountInfo struct {
 	ResourceIdToMint map[[32]uint8]common.PublicKey
 }
 
-var BridgeAccountLengthDefault = uint64(1000)
+var BridgeAccountLengthDefault = uint64(2000)
 var GetBridgeAccountInfoCfgDefault = GetAccountInfoConfig{
 	Encoding: GetAccountInfoConfigEncodingBase64,
 	DataSlice: GetAccountInfoConfigDataSlice{

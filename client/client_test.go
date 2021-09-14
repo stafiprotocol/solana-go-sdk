@@ -135,7 +135,7 @@ func TestGetBridgeAccountInfo(t *testing.T){
 
 func TestGetMintProposalInfo(t *testing.T){
 	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetMintProposalInfo(context.Background(), "HkYNY6TdY6HpfYR1bqGyJjMexz6Tzja7kyjavzQhm3rq")
+	info, err := c.GetMintProposalInfo(context.Background(), "BtgxF9MgpB9JtxsgeyUKVos6E5N5NbB8BEZLq2RbgUyo")
 	if err != nil {
 		t.Fatal(err)
 	}
