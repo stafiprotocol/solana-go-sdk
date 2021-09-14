@@ -17,6 +17,7 @@ var (
 	InstructionSetOwners           Instruction
 	InstructionChangeThreshold     Instruction
 	InstructionSetResourceId       Instruction
+	InstructionTransferOut         Instruction
 )
 
 func init() {
@@ -32,14 +33,17 @@ func init() {
 	copy(InstructionChangeThreshold[:], changeThresholdHash[:8])
 	setResourceIdHash := sha256.Sum256([]byte("global:set_resource_id"))
 	copy(InstructionSetResourceId[:], setResourceIdHash[:8])
+	transferOutHash := sha256.Sum256([]byte("global:transfer_out"))
+	copy(InstructionTransferOut[:], transferOutHash[:8])
 }
 
 func CreateBridge(
-	programID,
+	bridgeProgramID,
 	bridgeAccount common.PublicKey,
 	owners []common.PublicKey,
 	threshold uint64,
 	nonce uint8,
+	supportChainIds []uint8,
 	resourceIdToMint map[[32]byte]common.PublicKey,
 	admin common.PublicKey) types.Instruction {
 
@@ -48,6 +52,7 @@ func CreateBridge(
 		Owners                []common.PublicKey
 		Threshold             uint64
 		Nonce                 uint8
+		SupportChainIds       []uint8
 		ResourceIdToTokenProg map[[32]byte]common.PublicKey
 		Admin                 common.PublicKey
 	}{
@@ -55,6 +60,7 @@ func CreateBridge(
 		Owners:                owners,
 		Threshold:             threshold,
 		Nonce:                 nonce,
+		SupportChainIds:       supportChainIds,
 		ResourceIdToTokenProg: resourceIdToMint,
 		Admin:                 admin,
 	})
@@ -63,7 +69,7 @@ func CreateBridge(
 	}
 
 	return types.Instruction{
-		ProgramID: programID,
+		ProgramID: bridgeProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
 			{PubKey: common.SysVarRentPubkey, IsSigner: false, IsWritable: false},
@@ -79,10 +85,10 @@ type ProposalUsedAccount struct {
 }
 
 func CreateMintProposal(
-	programID common.PublicKey,
-	bridgeAccount common.PublicKey,
-	proposalAccount common.PublicKey,
-	toAccount common.PublicKey,
+	bridgeProgramID,
+	bridgeAccount,
+	proposalAccount,
+	toAccount,
 	proposerAccount common.PublicKey,
 	resourceId [32]byte,
 	amount uint64,
@@ -105,7 +111,7 @@ func CreateMintProposal(
 	}
 
 	return types.Instruction{
-		ProgramID: programID,
+		ProgramID: bridgeProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: bridgeAccount, IsSigner: false, IsWritable: false},
 			{PubKey: proposalAccount, IsSigner: false, IsWritable: true},
@@ -118,13 +124,13 @@ func CreateMintProposal(
 }
 
 func ApproveMintProposal(
-	programID,
+	bridgeProgramID,
 	bridgeAccount,
 	multiSiner,
 	proposalAccount,
-	approverAccount common.PublicKey,
-	mintAccount common.PublicKey,
-	to common.PublicKey,
+	approverAccount,
+	mintAccount,
+	toAccount,
 	tokenProgram common.PublicKey,
 ) types.Instruction {
 
@@ -143,21 +149,21 @@ func ApproveMintProposal(
 		{PubKey: proposalAccount, IsSigner: false, IsWritable: true},
 		{PubKey: approverAccount, IsSigner: true, IsWritable: false},
 		{PubKey: mintAccount, IsSigner: false, IsWritable: true},
-		{PubKey: to, IsSigner: false, IsWritable: true},
-		{PubKey: tokenProgram, IsSigner: false, IsWritable: true},
+		{PubKey: toAccount, IsSigner: false, IsWritable: true},
+		{PubKey: tokenProgram, IsSigner: false, IsWritable: false},
 	}
 
 	return types.Instruction{
-		ProgramID: programID,
+		ProgramID: bridgeProgramID,
 		Accounts:  accounts,
 		Data:      data,
 	}
 }
 
 func ChangeThreshold(
-	programID,
+	bridgeProgramID,
 	bridgeAccount,
-	multiSiner common.PublicKey,
+	adminAccount common.PublicKey,
 	threshold uint64) types.Instruction {
 
 	data, err := common.SerializeData(struct {
@@ -173,20 +179,20 @@ func ChangeThreshold(
 
 	accounts := []types.AccountMeta{
 		{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
-		{PubKey: multiSiner, IsSigner: true, IsWritable: false},
+		{PubKey: adminAccount, IsSigner: true, IsWritable: false},
 	}
 
 	return types.Instruction{
-		ProgramID: programID,
+		ProgramID: bridgeProgramID,
 		Accounts:  accounts,
 		Data:      data,
 	}
 }
 
 func SetResourceId(
-	programID,
+	bridgeProgramID,
 	bridgeAccount,
-	admin common.PublicKey,
+	adminAccount common.PublicKey,
 	resourceId [32]byte,
 	mint common.PublicKey,
 ) types.Instruction {
@@ -206,11 +212,53 @@ func SetResourceId(
 
 	accounts := []types.AccountMeta{
 		{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
-		{PubKey: admin, IsSigner: true, IsWritable: false},
+		{PubKey: adminAccount, IsSigner: true, IsWritable: false},
 	}
 
 	return types.Instruction{
-		ProgramID: programID,
+		ProgramID: bridgeProgramID,
+		Accounts:  accounts,
+		Data:      data,
+	}
+}
+
+func TransferOut(
+	bridgeProgramID,
+	bridgeAccount,
+	authorityAccount,
+	mintAccount,
+	fromAccount,
+	tokenProgram common.PublicKey,
+	amount uint64,
+	receiver []byte,
+	destChainId uint8,
+) types.Instruction {
+
+	data, err := common.SerializeData(struct {
+		Instruction Instruction
+		Amount      uint64
+		Receiver    []byte
+		DestChainId uint8
+	}{
+		Instruction: InstructionTransferOut,
+		Amount:      amount,
+		Receiver:    receiver,
+		DestChainId: destChainId,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	accounts := []types.AccountMeta{
+		{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
+		{PubKey: authorityAccount, IsSigner: true, IsWritable: false},
+		{PubKey: mintAccount, IsSigner: false, IsWritable: true},
+		{PubKey: fromAccount, IsSigner: false, IsWritable: true},
+		{PubKey: tokenProgram, IsSigner: false, IsWritable: false},
+	}
+
+	return types.Instruction{
+		ProgramID: bridgeProgramID,
 		Accounts:  accounts,
 		Data:      data,
 	}

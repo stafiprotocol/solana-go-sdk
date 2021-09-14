@@ -15,6 +15,7 @@ type GetBridgeAccountInfo struct {
 	Threshold        uint64
 	Nonce            uint8
 	OwnerSetSeqno    uint32
+	SupportChainIds  []uint8
 	DepositCount     map[uint8]uint64
 	ResourceIdToMint map[[32]uint8]common.PublicKey
 }

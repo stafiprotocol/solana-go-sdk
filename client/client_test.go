@@ -113,8 +113,7 @@ func TestGetMultisigTxInfo(t *testing.T) {
 	t.Log(fmt.Printf("%+v", info))
 }
 
-
-func TestGetMultisigInfoAccount(t *testing.T){
+func TestGetMultisigInfoAccount(t *testing.T) {
 	c := client.NewClient("https://api.devnet.solana.com")
 	info, err := c.GetMultisigInfoAccountInfo(context.Background(), "8TNEsKSzFsi6b56JwhpHWLZf9mR81LGDcQQka5EtVux7")
 	if err != nil {
@@ -123,7 +122,7 @@ func TestGetMultisigInfoAccount(t *testing.T){
 	t.Log(fmt.Printf("%+v", info))
 }
 
-func TestGetBridgeAccountInfo(t *testing.T){
+func TestGetBridgeAccountInfo(t *testing.T) {
 	c := client.NewClient("https://api.devnet.solana.com")
 	info, err := c.GetBridgeAccountInfo(context.Background(), "8B29iREQvQgmiyZSdzRrgEsh56W3m2Mpna5xvGG6jAEf")
 	if err != nil {
@@ -132,12 +131,61 @@ func TestGetBridgeAccountInfo(t *testing.T){
 	t.Log(fmt.Printf("%+v", info))
 }
 
-
-func TestGetMintProposalInfo(t *testing.T){
+func TestGetMintProposalInfo(t *testing.T) {
 	c := client.NewClient("https://api.devnet.solana.com")
 	info, err := c.GetMintProposalInfo(context.Background(), "BtgxF9MgpB9JtxsgeyUKVos6E5N5NbB8BEZLq2RbgUyo")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Printf("%+v", info))
+}
+
+func TestGetBlock(t *testing.T) {
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetBlock(context.Background(), 80837538, client.GetBlockConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// t.Log(fmt.Printf("%+v", info))
+
+	for _, tx := range info.Transactions {
+		t.Log(tx.Meta.LogMessages)
+	}
+}
+
+func TestGetConfirmedBlock(t *testing.T) {
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetConfirmedBlock(context.Background(), 80837538)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// t.Log(fmt.Printf("%+v", info))
+
+	for _, tx := range info.Transactions {
+		t.Log(tx.Meta.LogMessages)
+	}
+}
+
+func TestGetTransaction(t *testing.T) {
+	c := client.NewClient("https://explorer-api.devnet.solana.com")
+	info, err := c.GetTransaction(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa", client.GetTransactionWithLimitConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tx := range info.Meta.LogMessages {
+		t.Log(tx)
+	}
+}
+
+func TestGetConfirmedTransaction(t *testing.T) {
+	c := client.NewClient("https://explorer-api.devnet.solana.com")
+	info, err := c.GetConfirmedTransaction(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Sprintf("%+v",info))
+	for _, tx := range info.Meta.LogMessages {
+		t.Log(tx)
+	}
 }

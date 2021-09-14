@@ -10,7 +10,7 @@ type TransactionMeta struct {
 	Fee               uint64   `json:"fee"`
 	PreBalances       []int64  `json:"preBalances"`
 	PostBalances      []int64  `json:"postBalances"`
-	LogMessages       []string `json:"logMesssages"`
+	LogMessages       []string `json:"logMessages"`
 	InnerInstructions []struct {
 		Index        uint64        `json:"index"`
 		Instructions []Instruction `json:"instructions"`
