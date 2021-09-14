@@ -183,28 +183,3 @@ func ChangeThreshold(
 		Data:      data,
 	}
 }
-
-func GetRemainAccounts(ins []types.Instruction) []types.AccountMeta {
-	accountMetas := []types.AccountMeta{}
-	accountMap := make(map[string]types.AccountMeta)
-	for _, in := range ins {
-		accountMetas = append(accountMetas, types.AccountMeta{
-			PubKey:     in.ProgramID,
-			IsSigner:   false,
-			IsWritable: false,
-		})
-		accountMetas = append(accountMetas, in.Accounts...)
-	}
-	for i, _ := range accountMetas {
-		addrStr := accountMetas[i].PubKey.ToBase58()
-		accountMetas[i].IsWritable = accountMap[addrStr].IsWritable || accountMetas[i].IsWritable
-		accountMetas[i].IsSigner = false
-		accountMap[addrStr] = accountMetas[i]
-	}
-
-	ret := make([]types.AccountMeta, 0)
-	for _, value := range accountMap {
-		ret = append(ret, value)
-	}
-	return ret
-}

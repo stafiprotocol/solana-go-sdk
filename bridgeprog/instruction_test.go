@@ -83,9 +83,9 @@ func TestCreateBridge(t *testing.T) {
 	fmt.Println("createBridge txHash:", txHash)
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
 	fmt.Println("bridge account:", bridgeAccount.PublicKey.ToBase58())
-	fmt.Println("bridge account nonce", nonce)
+	fmt.Println("bridge pda account nonce", nonce)
+	fmt.Println("pda address:", multiSigner.ToBase58())
 	fmt.Println("proposal account:", mintProposalPubkey.ToBase58())
-	fmt.Println("multiSigner:", multiSigner.ToBase58())
 	fmt.Println("accountA", accountA.PublicKey.ToBase58(), hex.EncodeToString(accountA.PrivateKey))
 	fmt.Println("accountB", accountB.PublicKey.ToBase58(), hex.EncodeToString(accountB.PrivateKey))
 	fmt.Println("accountC", accountC.PublicKey.ToBase58(), hex.EncodeToString(accountC.PrivateKey))
@@ -117,20 +117,20 @@ func TestBridgeMint(t *testing.T) {
 	accountB := types.AccountFromPrivateKeyBytes(accountBBytes)
 	accountC := types.AccountFromPrivateKeyBytes(accountCBytes)
 
-	accountD := types.NewAccount()
+	accountTo := types.NewAccount()
 	rand.Seed(time.Now().Unix())
 	seed := fmt.Sprintf("proposal:%d", rand.Int())
 	mintProposalPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, bridgeProgramIdDev)
 
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
-	fmt.Println("multisig account:", bridgeAccountPubkey.ToBase58())
-	fmt.Println("multisig account nonce", nonce)
+	fmt.Println("bridge account:", bridgeAccountPubkey.ToBase58())
+	fmt.Println("bridge pda account nonce", nonce)
+	fmt.Println("pda address:", multiSigner.ToBase58())
 	fmt.Println("mint proposal account:", mintProposalPubkey.ToBase58())
-	fmt.Println("multiSigner:", multiSigner.ToBase58())
 	fmt.Println("accountA", accountA.PublicKey.ToBase58())
 	fmt.Println("accountB", accountB.PublicKey.ToBase58())
 	fmt.Println("accountC", accountC.PublicKey.ToBase58())
-	fmt.Println("accountD", accountD.PublicKey.ToBase58())
+	fmt.Println("accountTo", accountTo.PublicKey.ToBase58())
 
 	res, err = c.GetRecentBlockhash(context.Background())
 	if err != nil {
@@ -141,13 +141,13 @@ func TestBridgeMint(t *testing.T) {
 		Instructions: []types.Instruction{
 			sysprog.CreateAccount(
 				feePayer.PublicKey,
-				accountD.PublicKey,
+				accountTo.PublicKey,
 				common.TokenProgramID,
 				1000000000,
 				165,
 			),
 			tokenprog.InitializeAccount(
-				accountD.PublicKey,
+				accountTo.PublicKey,
 				mintAccountPubkey,
 				multiSigner,
 			),
@@ -161,7 +161,7 @@ func TestBridgeMint(t *testing.T) {
 				1000,
 			),
 		},
-		Signers:         []types.Account{feePayer, accountD},
+		Signers:         []types.Account{feePayer, accountTo},
 		FeePayer:        feePayer.PublicKey,
 		RecentBlockHash: res.Blockhash,
 	})
@@ -188,7 +188,8 @@ func TestBridgeMint(t *testing.T) {
 				mintProposalPubkey,
 				accountA.PublicKey,
 				[32]byte{1},
-				accountD.PublicKey,
+				accountTo.PublicKey,
+				100,
 				common.TokenProgramID,
 			),
 		},
@@ -207,90 +208,37 @@ func TestBridgeMint(t *testing.T) {
 	}
 	fmt.Println("Create mint proposal account txHash:", txHash)
 
-	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			bridgeprog.ApproveMintProposal(
-				bridgeProgramIdDev,
-				bridgeAccountPubkey,
-				multiSigner,
-				mintProposalPubkey,
-				accountB.PublicKey,
-				mintAccountPubkey,
-				accountD.PublicKey,
-				common.TokenProgramID,
-			),
-		},
-		Signers:         []types.Account{accountB, feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
+	approve := func(approver types.Account) {
+		rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
+			Instructions: []types.Instruction{
+				bridgeprog.ApproveMintProposal(
+					bridgeProgramIdDev,
+					bridgeAccountPubkey,
+					multiSigner,
+					mintProposalPubkey,
+					approver.PublicKey,
+					mintAccountPubkey,
+					accountTo.PublicKey,
+					common.TokenProgramID,
+				),
+			},
+			Signers:         []types.Account{approver, feePayer},
+			FeePayer:        feePayer.PublicKey,
+			RecentBlockHash: res.Blockhash,
+		})
 
-	if err != nil {
-		fmt.Printf("b generate Approve tx error, err: %v\n", err)
+		if err != nil {
+			fmt.Printf("generate Approve tx error, err: %v\n", err)
+		}
+
+		// t.Log("rawtx base58:", base58.Encode(rawTx))
+		txHash, err = c.SendRawTransaction(context.Background(), rawTx)
+		if err != nil {
+			fmt.Printf("send tx error, err: %v\n", err)
+		}
+		fmt.Println("Approve txHash:", txHash, approver.PublicKey.ToBase58())
 	}
 
-	// t.Log("rawtx base58:", base58.Encode(rawTx))
-	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-	fmt.Println("b Approve txHash:", txHash)
-
-	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			bridgeprog.ApproveMintProposal(
-				bridgeProgramIdDev,
-				bridgeAccountPubkey,
-				multiSigner,
-				mintProposalPubkey,
-				accountA.PublicKey,
-				mintAccountPubkey,
-				accountD.PublicKey,
-				common.TokenProgramID,
-			),
-		},
-		Signers:         []types.Account{accountA, feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-
-	if err != nil {
-		fmt.Printf("a generate Approve tx error, err: %v\n", err)
-	}
-
-	// t.Log("rawtx base58:", base58.Encode(rawTx))
-	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-	fmt.Println("a Approve txHash:", txHash)
-
-	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			bridgeprog.ApproveMintProposal(
-				bridgeProgramIdDev,
-				bridgeAccountPubkey,
-				multiSigner,
-				mintProposalPubkey,
-				accountC.PublicKey,
-				mintAccountPubkey,
-				accountD.PublicKey,
-				common.TokenProgramID,
-			),
-		},
-		Signers:         []types.Account{accountC, feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-
-	if err != nil {
-		fmt.Printf("c generate Approve tx error, err: %v\n", err)
-	}
-
-	// t.Log("rawtx base58:", base58.Encode(rawTx))
-	txHash, err = c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-	fmt.Println("c Approve txHash:", txHash)
+	approve(accountA)
+	approve(accountB)
 }

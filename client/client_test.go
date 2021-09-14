@@ -122,3 +122,22 @@ func TestGetMultisigInfoAccount(t *testing.T){
 	}
 	t.Log(fmt.Printf("%+v", info))
 }
+
+func TestGetBridgeAccountInfo(t *testing.T){
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetBridgeAccountInfo(context.Background(), "8B29iREQvQgmiyZSdzRrgEsh56W3m2Mpna5xvGG6jAEf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Printf("%+v", info))
+}
+
+
+func TestGetMintProposalInfo(t *testing.T){
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetMintProposalInfo(context.Background(), "HkYNY6TdY6HpfYR1bqGyJjMexz6Tzja7kyjavzQhm3rq")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Printf("%+v", info))
+}
