@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 
 	"github.com/near/borsh-go"
+	"github.com/stafiprotocol/solana-go-sdk/bridgeprog"
 	"github.com/stafiprotocol/solana-go-sdk/client"
 	"github.com/stafiprotocol/solana-go-sdk/common"
 )
@@ -158,14 +160,20 @@ func TestGetBlock(t *testing.T) {
 
 func TestGetConfirmedBlock(t *testing.T) {
 	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetConfirmedBlock(context.Background(), 80837538)
+	info, err := c.GetConfirmedBlock(context.Background(), 81048933)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// t.Log(fmt.Printf("%+v", info))
 
 	for _, tx := range info.Transactions {
-		t.Log(tx.Meta.LogMessages)
+		for _, log := range tx.Meta.LogMessages {
+			// t.Log(log)
+			if strings.HasPrefix(log, bridgeprog.EventTransferOutPrefix) {
+				t.Log(strings.TrimPrefix(log,bridgeprog.ProgramLogPrefix))
+			}
+		}
+		// t.Log(tx.Meta.LogMessages)
 	}
 }
 
@@ -177,7 +185,9 @@ func TestGetTransaction(t *testing.T) {
 	}
 
 	for _, tx := range info.Meta.LogMessages {
-		t.Log(tx)
+		if strings.HasPrefix(tx, bridgeprog.EventTransferOutPrefix) {
+			t.Log(tx)
+		}
 	}
 }
 
@@ -191,6 +201,15 @@ func TestGetConfirmedTransaction(t *testing.T) {
 	for _, tx := range info.Meta.LogMessages {
 		t.Log(tx)
 	}
+}
+
+func TestGetBlockHeight(t *testing.T) {
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Sprintf("%+v", info))
 }
 
 type EventTransferOut struct {
@@ -211,7 +230,16 @@ func TestParseLog(t *testing.T) {
 	if len(accountDataBts) <= 8 {
 		t.Fatal("ee")
 	}
-	t.Log(accountDataBts)
+	t.Log(accountDataBts[:8])
+	t.Log(bridgeprog.EventTransferOut)
+	t.Log(base64.StdEncoding.EncodeToString(bridgeprog.EventTransferOut[:]))
+	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:9]))
+	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:10]))
+	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:11]))
+	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:12]))
+	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:13]))
+	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:14]))
+	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:15]))
 
 	multiTxAccountInfo := EventTransferOut{}
 	err = borsh.Deserialize(&multiTxAccountInfo, accountDataBts[8:])

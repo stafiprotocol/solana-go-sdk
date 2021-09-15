@@ -9,6 +9,7 @@ import (
 )
 
 type Instruction [8]byte
+type Event [8]byte
 
 var (
 	InstructionCreateBridge        Instruction
@@ -18,6 +19,10 @@ var (
 	InstructionChangeThreshold     Instruction
 	InstructionSetResourceId       Instruction
 	InstructionTransferOut         Instruction
+
+	EventTransferOut       Event
+	ProgramLogPrefix       = "Program log: "
+	EventTransferOutPrefix = ProgramLogPrefix + "7arrB4Lk4L"
 )
 
 func init() {
@@ -35,6 +40,8 @@ func init() {
 	copy(InstructionSetResourceId[:], setResourceIdHash[:8])
 	transferOutHash := sha256.Sum256([]byte("global:transfer_out"))
 	copy(InstructionTransferOut[:], transferOutHash[:8])
+	eventTransferOutHash := sha256.Sum256([]byte("event:EventTransferOut"))
+	copy(EventTransferOut[:], eventTransferOutHash[:8])
 }
 
 func CreateBridge(
