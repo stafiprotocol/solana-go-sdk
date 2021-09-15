@@ -2,11 +2,14 @@ package client_test
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"sync"
 	"testing"
 
+	"github.com/near/borsh-go"
 	"github.com/stafiprotocol/solana-go-sdk/client"
+	"github.com/stafiprotocol/solana-go-sdk/common"
 )
 
 func TestAccountInfo(t *testing.T) {
@@ -184,8 +187,36 @@ func TestGetConfirmedTransaction(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(fmt.Sprintf("%+v",info))
+	t.Log(fmt.Sprintf("%+v", info))
 	for _, tx := range info.Meta.LogMessages {
 		t.Log(tx)
 	}
+}
+
+type EventTransferOut struct {
+	Transfer     common.PublicKey
+	Receiver     []byte
+	Amount       uint64
+	DestChainId  uint8
+	ResourceId   [32]byte
+	DepositNonce uint64
+}
+
+func TestParseLog(t *testing.T) {
+	msg := "7arrB4Lk4L+33mMucKYMb78cH5By6eymggY2XBfqajtrBnTVEmFjbAUAAAABAQEBAQoAAAAAAAAAAQECAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAA="
+	accountDataBts, err := base64.StdEncoding.DecodeString(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(accountDataBts) <= 8 {
+		t.Fatal("ee")
+	}
+	t.Log(accountDataBts)
+
+	multiTxAccountInfo := EventTransferOut{}
+	err = borsh.Deserialize(&multiTxAccountInfo, accountDataBts[8:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(multiTxAccountInfo)
 }
