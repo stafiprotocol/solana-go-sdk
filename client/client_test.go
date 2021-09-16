@@ -248,3 +248,23 @@ func TestParseLog(t *testing.T) {
 	}
 	t.Log(multiTxAccountInfo)
 }
+
+
+
+
+// FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51
+
+
+func TestGetSignaturesForAddress(t *testing.T) {
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetSignaturesForAddress(context.Background(),"FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51",client.GetConfirmedSignaturesForAddressConfig{
+		Limit:      0,
+		Before:     "",
+		Until:      "",
+		Commitment: "",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Sprintf("%+v", info))
+}
