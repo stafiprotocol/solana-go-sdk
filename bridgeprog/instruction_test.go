@@ -17,7 +17,7 @@ import (
 )
 
 var bridgeProgramIdDev = common.PublicKeyFromString("FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51")
-var mintAccountPubkey = common.PublicKeyFromString("E69LybKSwihww36FHM14YLJ6owFfKXo6LmRruQmu4qpo")
+var mintAccountPubkey = common.PublicKeyFromString("9qab2RkbcDbkKjbSAfaN6CCLPgZ7h39npsksVmWPbW6e")
 var localClient = "https://api.devnet.solana.com"
 
 func TestCreateBridge(t *testing.T) {
@@ -247,6 +247,70 @@ func TestBridgeMint(t *testing.T) {
 	approve(accountC)
 }
 
+func TestCreateTokenAccount(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetRecentBlockhash(context.Background())
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
+
+	_, err = c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	accountTo := types.NewAccount()
+	rand.Seed(time.Now().Unix())
+	// seed := fmt.Sprintf("proposal:%d", rand.Int())
+	// mintProposalPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, bridgeProgramIdDev)
+
+	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
+	// fmt.Println("mint proposal account:", mintProposalPubkey.ToBase58())
+	fmt.Println("accountTo", accountTo.PublicKey.ToBase58(), hex.EncodeToString(accountTo.PrivateKey),
+		hex.EncodeToString(accountTo.PublicKey.Bytes()))
+
+	res, err = c.GetRecentBlockhash(context.Background())
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			sysprog.CreateAccount(
+				feePayer.PublicKey,
+				accountTo.PublicKey,
+				common.TokenProgramID,
+				1000000000,
+				165,
+			),
+			tokenprog.InitializeAccount(
+				accountTo.PublicKey,
+				mintAccountPubkey, //mint must == token mintAccount
+				feePayer.PublicKey,
+			),
+		},
+		Signers:         []types.Account{feePayer, accountTo},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("generate create account tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("create mint proposal and to account hash ", txHash)
+
+	res, err = c.GetRecentBlockhash(context.Background())
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+}
+
 func TestSetResourceId(t *testing.T) {
 	c := client.NewClient(localClient)
 
@@ -301,21 +365,19 @@ func TestSetResourceId(t *testing.T) {
 func TestTransferOut(t *testing.T) {
 	c := client.NewClient(localClient)
 
-	res, err := c.GetRecentBlockhash(context.Background())
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
 	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
-	_, err = c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
+	_, err := c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fromBytes, _ := hex.DecodeString("b92720c229577e63427b6f6e17d5d1939412d78179c3201e63f691b575956d7fb7de632e70a60c6fbf1c1f9072e9eca68206365c17ea6a3b6b0674d51261636c")
-	bridgeAccountPubkey := common.PublicKeyFromString("2z4iNM45St7DL6xSPpxthCaUQZYdYZsMf7KPs9m51eoh")
+	fromBytes, _ := hex.DecodeString("cf0b31c9a3ca108ffe22d4e9b73af6be36c87fc4cfabe52a938ca60ce28c20143429f41f8636e46a8f7a90a11c1e652787bbee64a60a04650f7f5b8e55f0a739")
+	bridgeAccountPubkey := common.PublicKeyFromString("ByorhXUES7EQHxx5epzgD7PM5fyorqE7L4XmAY2Qz6Vm")
 	fromAccount := types.AccountFromPrivateKeyBytes(fromBytes)
+	receiver,_:=hex.DecodeString("306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20")
 	fmt.Println("fromAccount", fromAccount.PublicKey.ToBase58())
-
-	res, err = c.GetRecentBlockhash(context.Background())
+	chainId:=1
+	amount := 5
+	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -329,9 +391,9 @@ func TestTransferOut(t *testing.T) {
 				mintAccountPubkey,
 				fromAccount.PublicKey,
 				common.TokenProgramID,
-				10,
-				[]byte{1, 1, 1, 1, 1},
-				1,
+				uint64(amount),
+				receiver,
+				uint8(chainId),
 			),
 		},
 		Signers:         []types.Account{feePayer},

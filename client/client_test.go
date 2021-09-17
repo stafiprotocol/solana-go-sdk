@@ -3,6 +3,7 @@ package client_test
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"sync"
@@ -247,6 +248,9 @@ func TestParseLog(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(multiTxAccountInfo)
+
+	pubkey:=common.PublicKeyFromString("9Riwnxn53S4wmy5h5nbQN1gxTCm1EvgqB4Gc5aKDAPyc")
+	t.Log(hex.EncodeToString(pubkey.Bytes()))
 }
 
 
@@ -257,10 +261,10 @@ func TestParseLog(t *testing.T) {
 
 func TestGetSignaturesForAddress(t *testing.T) {
 	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetSignaturesForAddress(context.Background(),"FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51",client.GetConfirmedSignaturesForAddressConfig{
-		Limit:      0,
-		Before:     "",
-		Until:      "",
+	info, err := c.GetConfirmedSignaturesForAddress(context.Background(),"FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51",client.GetConfirmedSignaturesForAddressConfig{
+		Limit:      1000,
+		Before:     "5yhpbdfLBJvstkpv2RaE4A98xGiEanrznt2yAV22ooxedLTSThQFXmvUyRboJX38e2UKokZtBvYMcQonLxQ8j6SD",
+		Until:      "2T64SSqK3X6xQsbqEgx5THTXFtKHmL14gfbMX1sZaXdqfpGbA3CcTab57p2jw9qEHnYnHbYavKtoyz1wxYZP8vDi",
 		Commitment: "",
 	})
 	if err != nil {
