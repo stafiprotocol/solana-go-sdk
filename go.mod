@@ -9,4 +9,4 @@ require (
 	github.com/teserakt-io/golang-ed25519 v0.0.0-20210104091850-3888c087a4c8
 )
 
-replace github.com/near/borsh-go => github.com/tpkeeper/borsh-go v0.3.0
+replace github.com/near/borsh-go => github.com/tpkeeper/borsh-go v0.3.1-0.20210918134133-8433ab32a70c
