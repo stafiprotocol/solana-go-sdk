@@ -2,12 +2,14 @@ package bridgeprog_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/near/borsh-go"
 	"github.com/stafiprotocol/solana-go-sdk/bridgeprog"
 	"github.com/stafiprotocol/solana-go-sdk/client"
 	"github.com/stafiprotocol/solana-go-sdk/common"
@@ -373,9 +375,9 @@ func TestTransferOut(t *testing.T) {
 	fromBytes, _ := hex.DecodeString("cf0b31c9a3ca108ffe22d4e9b73af6be36c87fc4cfabe52a938ca60ce28c20143429f41f8636e46a8f7a90a11c1e652787bbee64a60a04650f7f5b8e55f0a739")
 	bridgeAccountPubkey := common.PublicKeyFromString("ByorhXUES7EQHxx5epzgD7PM5fyorqE7L4XmAY2Qz6Vm")
 	fromAccount := types.AccountFromPrivateKeyBytes(fromBytes)
-	receiver,_:=hex.DecodeString("306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20")
+	receiver, _ := hex.DecodeString("306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20")
 	fmt.Println("fromAccount", fromAccount.PublicKey.ToBase58())
-	chainId:=1
+	chainId := 1
 	amount := 5
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
@@ -410,3 +412,5 @@ func TestTransferOut(t *testing.T) {
 	}
 	fmt.Println("transfer out tx  hash ", txHash)
 }
+
+

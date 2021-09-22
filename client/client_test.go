@@ -13,6 +13,7 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/bridgeprog"
 	"github.com/stafiprotocol/solana-go-sdk/client"
 	"github.com/stafiprotocol/solana-go-sdk/common"
+	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
 func TestAccountInfo(t *testing.T) {
@@ -129,8 +130,8 @@ func TestGetMultisigInfoAccount(t *testing.T) {
 }
 
 func TestGetBridgeAccountInfo(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetBridgeAccountInfo(context.Background(), "8B29iREQvQgmiyZSdzRrgEsh56W3m2Mpna5xvGG6jAEf")
+	c := client.NewClient("https://solana-dev-rpc.wetez.io")
+	info, err := c.GetBridgeAccountInfo(context.Background(), "63ytYLeNDaaUx2u94KHJcoueaLzA7gryB26p2w8E53oh")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +172,7 @@ func TestGetConfirmedBlock(t *testing.T) {
 		for _, log := range tx.Meta.LogMessages {
 			// t.Log(log)
 			if strings.HasPrefix(log, bridgeprog.EventTransferOutPrefix) {
-				t.Log(strings.TrimPrefix(log,bridgeprog.ProgramLogPrefix))
+				t.Log(strings.TrimPrefix(log, bridgeprog.ProgramLogPrefix))
 			}
 		}
 		// t.Log(tx.Meta.LogMessages)
@@ -249,19 +250,20 @@ func TestParseLog(t *testing.T) {
 	}
 	t.Log(multiTxAccountInfo)
 
-	pubkey:=common.PublicKeyFromString("9Riwnxn53S4wmy5h5nbQN1gxTCm1EvgqB4Gc5aKDAPyc")
+	// pubkey:=common.PublicKeyFromString("9Riwnxn53S4wmy5h5nbQN1gxTCm1EvgqB4Gc5aKDAPyc")
+	pubkey := common.PublicKeyFromString("2cTdCXvyeLfNvoKinFVWGYWnWYxaY45gydtnnbJpSJE3")
+	t.Log(pubkey)
 	t.Log(hex.EncodeToString(pubkey.Bytes()))
+
+	bts, err := hex.DecodeString("98d9634ad58009cda11726a718073b5ba525d51483cbf8e8bef127cb6b70e900")
+	t.Log(common.PublicKeyFromBytes(bts).ToBase58())
 }
-
-
-
 
 // FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51
 
-
 func TestGetSignaturesForAddress(t *testing.T) {
 	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetConfirmedSignaturesForAddress(context.Background(),"FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51",client.GetConfirmedSignaturesForAddressConfig{
+	info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51", client.GetConfirmedSignaturesForAddressConfig{
 		Limit:      1000,
 		Before:     "5yhpbdfLBJvstkpv2RaE4A98xGiEanrznt2yAV22ooxedLTSThQFXmvUyRboJX38e2UKokZtBvYMcQonLxQ8j6SD",
 		Until:      "2T64SSqK3X6xQsbqEgx5THTXFtKHmL14gfbMX1sZaXdqfpGbA3CcTab57p2jw9qEHnYnHbYavKtoyz1wxYZP8vDi",
@@ -271,4 +273,24 @@ func TestGetSignaturesForAddress(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Sprintf("%+v", info))
+}
+
+func TestGetTokenAccount(t *testing.T) {
+	c := client.NewClient("https://api.devnet.solana.com")
+
+	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
+	_, err := c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fromBytes, _ := hex.DecodeString("cf0b31c9a3ca108ffe22d4e9b73af6be36c87fc4cfabe52a938ca60ce28c20143429f41f8636e46a8f7a90a11c1e652787bbee64a60a04650f7f5b8e55f0a739")
+	fromAccount := types.AccountFromPrivateKeyBytes(fromBytes)
+	fmt.Println("fromAccount", fromAccount.PublicKey.ToBase58())
+	accountInfo, err := c.GetTokenAccountInfo(context.Background(), fromAccount.PublicKey.ToBase58())
+	if err != nil {
+		t.Log(err)
+	}
+	t.Log(fmt.Sprintf("%+v", accountInfo))
+	t.Log(fmt.Sprintf("%+v", accountInfo.Mint.ToBase58()))
+
 }
