@@ -2,14 +2,12 @@ package bridgeprog_test
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/near/borsh-go"
 	"github.com/stafiprotocol/solana-go-sdk/bridgeprog"
 	"github.com/stafiprotocol/solana-go-sdk/client"
 	"github.com/stafiprotocol/solana-go-sdk/common"
@@ -19,7 +17,7 @@ import (
 )
 
 var bridgeProgramIdDev = common.PublicKeyFromString("FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51")
-var mintAccountPubkey = common.PublicKeyFromString("9qab2RkbcDbkKjbSAfaN6CCLPgZ7h39npsksVmWPbW6e")
+var mintAccountPubkey = common.PublicKeyFromString("ApyYYc8URTrmvzTko5ffYuyJCZtVnULWq5qxM2tm1mYj")
 var localClient = "https://api.devnet.solana.com"
 
 func TestCreateBridge(t *testing.T) {
@@ -40,6 +38,7 @@ func TestCreateBridge(t *testing.T) {
 	accountA := types.NewAccount()
 	accountB := types.NewAccount()
 	accountC := types.NewAccount()
+	feeReceiver := types.NewAccount()
 	accountAdmin := types.NewAccount()
 	multiSigner, nonce, err := common.FindProgramAddress([][]byte{bridgeAccount.PublicKey.Bytes()}, bridgeProgramIdDev)
 	if err != nil {
@@ -67,6 +66,8 @@ func TestCreateBridge(t *testing.T) {
 					[32]byte{1, 2, 3}: mintAccountPubkey,
 				},
 				accountAdmin.PublicKey,
+				feeReceiver.PublicKey,
+				map[uint8]uint64{1: 2},
 			),
 		},
 		Signers:         []types.Account{feePayer, bridgeAccount},
@@ -93,6 +94,7 @@ func TestCreateBridge(t *testing.T) {
 	fmt.Println("accountB", accountB.PublicKey.ToBase58(), hex.EncodeToString(accountB.PrivateKey))
 	fmt.Println("accountC", accountC.PublicKey.ToBase58(), hex.EncodeToString(accountC.PrivateKey))
 	fmt.Println("accountAdmin", accountAdmin.PublicKey.ToBase58(), hex.EncodeToString(accountAdmin.PrivateKey))
+	fmt.Println("feeReceiver", feeReceiver.PublicKey.ToBase58(), hex.EncodeToString(feeReceiver.PrivateKey))
 
 }
 
@@ -110,12 +112,12 @@ func TestBridgeMint(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	accountABytes, _ := hex.DecodeString("5342fdb647371247b1b8ea7fa9284bc693b77d511b74ab6fb5ce4ea9e2e30cdc59ef57818a3ef5788d7364220b5d00cd532254efd83e94c7fbaea73926c4f1f4")
-	accountBBytes, _ := hex.DecodeString("94ec1ddf5f8d8df9fbe646788d39e052e184f9ecde92074a184f55ced09594d94e08c08466313bb1d9a92e7ac7094493cbfd83e2393dd0b0af1aa8fc8487ac75")
-	accountCBytes, _ := hex.DecodeString("0700d35fb18d46e1d890143586962b66784628c3bcdf7e62fb4c0d280a0326beea72d9b4457ce89ca1b0d12f1dbab5cc44be12ddd3d3dedd8b3c7f9bb02b640f")
-	pdaPubkey, nonce := common.PublicKeyFromString("36HcYj2ep7wvTTfyjNBErTLvxFG1zFs5E2yCDQTyN2dZ"), 254
+	accountABytes, _ := hex.DecodeString("71bfe36bed6af18e074a703168beb568fe2032a03c6e424ab7193b392cb5a07b2fb30c0b530a85f2653c4137ba50ca993588d729676a6955a33ed43263a961e3")
+	accountBBytes, _ := hex.DecodeString("d7a82e87057e2a73e573e3c4b9d6699f388c06733b787fac893050c5b5a7bdb86d6a21fd14eecabcb8b5f6d0bc3d33854f6f6dbd3be08fb9ef64ea370e6ac830")
+	accountCBytes, _ := hex.DecodeString("94e5bacc1bb1afab057900f103ed6cd05567556f196305b15d732e6ae4e099aeebee5c0fcb5f30f2c86fc4736dd3b39b5682947333f852c40c491953f2b0767d")
+	pdaPubkey, nonce := common.PublicKeyFromString("3WEkp3TcCBSfV78jnLFpj6xfKUfEForJ2TecSgjsw2Qt"), 255
 
-	bridgeAccountPubkey := common.PublicKeyFromString("2z4iNM45St7DL6xSPpxthCaUQZYdYZsMf7KPs9m51eoh")
+	bridgeAccountPubkey := common.PublicKeyFromString("AvwyyCXyrUSvunnTmDAdUfqQJYRbvYzpcW5kuf6FEMF")
 	accountA := types.AccountFromPrivateKeyBytes(accountABytes)
 	accountB := types.AccountFromPrivateKeyBytes(accountBBytes)
 	accountC := types.AccountFromPrivateKeyBytes(accountCBytes)
@@ -183,7 +185,6 @@ func TestBridgeMint(t *testing.T) {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
 	accountToPubKey := accountTo.PublicKey
-	// accountToPubKey := common.PublicKeyFromString("9RM7zLSC521zDHRQaxFZhnExs3Giba8BtnJYS2peQBJf")
 
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -194,7 +195,7 @@ func TestBridgeMint(t *testing.T) {
 				accountToPubKey,
 				accountA.PublicKey,
 				[32]byte{1, 2, 3},
-				100,
+				1000,
 				common.TokenProgramID,
 			),
 		},
@@ -372,13 +373,19 @@ func TestTransferOut(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fromBytes, _ := hex.DecodeString("cf0b31c9a3ca108ffe22d4e9b73af6be36c87fc4cfabe52a938ca60ce28c20143429f41f8636e46a8f7a90a11c1e652787bbee64a60a04650f7f5b8e55f0a739")
-	bridgeAccountPubkey := common.PublicKeyFromString("ByorhXUES7EQHxx5epzgD7PM5fyorqE7L4XmAY2Qz6Vm")
+	fromBytes, _ := hex.DecodeString("a38dd7b13e4a1a889d1289f3c5ad6413259755601c86fb8178f49dec95e629c5fd9e41c290546ab525e153fbc0e460fe2c150f492eabdcd8145e5c6d1ebe99ff")
 	fromAccount := types.AccountFromPrivateKeyBytes(fromBytes)
-	receiver, _ := hex.DecodeString("306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20")
 	fmt.Println("fromAccount", fromAccount.PublicKey.ToBase58())
+
+	bridgeAccountPubkey := common.PublicKeyFromString("AvwyyCXyrUSvunnTmDAdUfqQJYRbvYzpcW5kuf6FEMF")
+
+	receiver, _ := hex.DecodeString("306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20")
+	feeReceiverBts, _ := hex.DecodeString("2c9ae658eb59cddeb35fe5a9f35ee1e8d10f042b93a916d24f1e4e3c1c762a80c467557cbe571da11d7b6ac731d0d9f23260347062b6a55fa2aa3a26a160dabe")
+	feeReceiver := types.AccountFromPrivateKeyBytes(feeReceiverBts)
+	fmt.Println("feeReceiver", feeReceiver.PublicKey.ToBase58())
+
 	chainId := 1
-	amount := 5
+	amount := 1
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
@@ -392,7 +399,9 @@ func TestTransferOut(t *testing.T) {
 				feePayer.PublicKey,
 				mintAccountPubkey,
 				fromAccount.PublicKey,
+				feeReceiver.PublicKey,
 				common.TokenProgramID,
+				common.SystemProgramID,
 				uint64(amount),
 				receiver,
 				uint8(chainId),
@@ -413,4 +422,18 @@ func TestTransferOut(t *testing.T) {
 	fmt.Println("transfer out tx  hash ", txHash)
 }
 
-
+func TestSerilize(t *testing.T) {
+	receiver, _ := hex.DecodeString("306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20")
+	data, _ := common.SerializeData(struct {
+		Instruction bridgeprog.Instruction
+		Amount      uint64
+		Receiver    []byte
+		DestChainId uint8
+	}{
+		Instruction: bridgeprog.InstructionTransferOut,
+		Amount:      10000000,
+		Receiver:    receiver,
+		DestChainId: 1,
+	})
+	t.Log(hex.EncodeToString(data))
+}

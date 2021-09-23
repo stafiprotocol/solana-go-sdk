@@ -130,12 +130,13 @@ func TestGetMultisigInfoAccount(t *testing.T) {
 }
 
 func TestGetBridgeAccountInfo(t *testing.T) {
-	c := client.NewClient("https://solana-dev-rpc.wetez.io")
-	info, err := c.GetBridgeAccountInfo(context.Background(), "63ytYLeNDaaUx2u94KHJcoueaLzA7gryB26p2w8E53oh")
+	c := client.NewClient("https://api.devnet.solana.com")
+	info, err := c.GetBridgeAccountInfo(context.Background(), "AwmVNPQ1iprvmdUuXcda3LeGeyUHFs7Hqo1cAhsCAcj3")
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(fmt.Printf("%+v", info))
+	// t.Log(fmt.Printf("%+v", info))
+	t.Log(common.PublicKeyFromBytes(info.FeeReceiver[:]).ToBase58())
 }
 
 func TestGetMintProposalInfo(t *testing.T) {
@@ -224,7 +225,8 @@ type EventTransferOut struct {
 }
 
 func TestParseLog(t *testing.T) {
-	msg := "7arrB4Lk4L+33mMucKYMb78cH5By6eymggY2XBfqajtrBnTVEmFjbAUAAAABAQEBAQoAAAAAAAAAAQECAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAA="
+	// msg := "7arrB4Lk4L+33mMucKYMb78cH5By6eymggY2XBfqajtrBnTVEmFjbAUAAAABAQEBAQoAAAAAAAAAAQECAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAA="
+	msg := "7arrB4Lk4L8DxOYp6nBnEQYF6Kx+u2D/FSd+muH+uTMW3s/snnL2JCAAAAB0g0gRxgiA0CZ5M+McJT6TfhSFT1Ls3R8l0mvcGR4tEICWmAAAAAAAAQAAAAAAAAAAAAAAAAAAAGWbkw+FaJUst7DIt+2jBgsBAgAAAAAAAAA="
 	accountDataBts, err := base64.StdEncoding.DecodeString(msg)
 	if err != nil {
 		t.Fatal(err)
@@ -235,20 +237,21 @@ func TestParseLog(t *testing.T) {
 	t.Log(accountDataBts[:8])
 	t.Log(bridgeprog.EventTransferOut)
 	t.Log(base64.StdEncoding.EncodeToString(bridgeprog.EventTransferOut[:]))
-	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:9]))
-	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:10]))
-	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:11]))
-	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:12]))
-	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:13]))
-	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:14]))
-	t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:15]))
+	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:9]))
+	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:10]))
+	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:11]))
+	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:12]))
+	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:13]))
+	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:14]))
+	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:15]))
 
 	multiTxAccountInfo := EventTransferOut{}
 	err = borsh.Deserialize(&multiTxAccountInfo, accountDataBts[8:])
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(multiTxAccountInfo)
+	t.Log(hex.EncodeToString(multiTxAccountInfo.Receiver))
+	t.Log(multiTxAccountInfo.Amount)
 
 	// pubkey:=common.PublicKeyFromString("9Riwnxn53S4wmy5h5nbQN1gxTCm1EvgqB4Gc5aKDAPyc")
 	pubkey := common.PublicKeyFromString("2cTdCXvyeLfNvoKinFVWGYWnWYxaY45gydtnnbJpSJE3")
@@ -292,5 +295,5 @@ func TestGetTokenAccount(t *testing.T) {
 	}
 	t.Log(fmt.Sprintf("%+v", accountInfo))
 	t.Log(fmt.Sprintf("%+v", accountInfo.Mint.ToBase58()))
-
+	t.Log(hex.EncodeToString(bridgeprog.InstructionTransferOut[:]))
 }

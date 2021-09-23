@@ -18,6 +18,8 @@ type GetBridgeAccountInfo struct {
 	SupportChainIds  []uint8
 	DepositCount     map[uint8]uint64
 	ResourceIdToMint map[[32]uint8]common.PublicKey
+	FeeReceiver      [32]uint8
+	FeeAmount        map[uint8]uint64
 }
 
 var BridgeAccountLengthDefault = uint64(2000)
@@ -58,7 +60,7 @@ func (s *Client) GetBridgeAccountInfo(ctx context.Context, account string) (*Get
 	bridgeAccountInfo := GetBridgeAccountInfo{}
 	err = borsh.Deserialize(&bridgeAccountInfo, accountDataBts[8:])
 	if err != nil {
-		return nil, fmt.Errorf("Deserialize err: %s", err)
+		return nil, fmt.Errorf("Deserialize err: %s", err.Error())
 	}
 	return &bridgeAccountInfo, nil
 }
