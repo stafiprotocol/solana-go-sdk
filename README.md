@@ -7,8 +7,9 @@ forked from [portto/solana-go-sdk](https://github.com/portto/solana-go-sdk)
 here changed:
 
 * add multisigprog support
-* add getStakeAccountInfo
+* add bridgeprog support
 * optimize serialize func
+* add getStakeAccountInfo
 
 
 ## Getting Started

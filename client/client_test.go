@@ -130,12 +130,13 @@ func TestGetMultisigInfoAccount(t *testing.T) {
 }
 
 func TestGetBridgeAccountInfo(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetBridgeAccountInfo(context.Background(), "AwmVNPQ1iprvmdUuXcda3LeGeyUHFs7Hqo1cAhsCAcj3")
+	// c := client.NewClient("https://api.devnet.solana.com")
+	c := client.NewClient("https://solana-dev-rpc.wetez.io")
+	info, err := c.GetBridgeAccountInfo(context.Background(), "63ytYLeNDaaUx2u94KHJcoueaLzA7gryB26p2w8E53oh")
 	if err != nil {
 		t.Fatal(err)
 	}
-	// t.Log(fmt.Printf("%+v", info))
+	t.Log(fmt.Printf("%+v", info))
 	t.Log(common.PublicKeyFromBytes(info.FeeReceiver[:]).ToBase58())
 }
 
@@ -279,10 +280,15 @@ func TestGetSignaturesForAddress(t *testing.T) {
 }
 
 func TestGetTokenAccount(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
+	c := client.NewClient("https://api.mainnet-beta.solana.com")
+	miniMumBalance200, err := c.GetMinimumBalanceForRentExemption(context.Background(), 200)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(miniMumBalance200)
 
 	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
-	_, err := c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
+	_, err = c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
 	if err != nil {
 		fmt.Println(err)
 	}
