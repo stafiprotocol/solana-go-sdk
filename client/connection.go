@@ -15,7 +15,7 @@ const (
 	DevnetRPCEndpoint  = "https://api.devnet.solana.com"
 	TestnetRPCEndpoint = "https://testnet.solana.com"
 	MainnetRPCEndpoint = "https://api.mainnet-beta.solana.com"
-	retryLimit         = 60 * 4
+	retryLimit         = 60 * 6
 	waitTime           = time.Second * 5
 )
 
@@ -106,6 +106,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 		// return result
 		if res.StatusCode < 200 || res.StatusCode > 300 {
 			err = fmt.Errorf("get status code: %d", res.StatusCode)
+			fmt.Println(err)
 			time.Sleep(waitTime)
 			retry++
 			continue
