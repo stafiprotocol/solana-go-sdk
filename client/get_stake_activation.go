@@ -35,6 +35,7 @@ func (s *Client) GetStakeActivation(ctx context.Context, address string, cfg Get
 	if err != nil {
 		return GetStakeActivationResponse{}, err
 	}
+	//rpc error
 	if res.Error != (ErrorResponse{}) {
 		return GetStakeActivationResponse{}, errors.New(res.Error.Message)
 	}

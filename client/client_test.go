@@ -9,6 +9,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/mr-tron/base58"
 	"github.com/near/borsh-go"
 	"github.com/stafiprotocol/solana-go-sdk/bridgeprog"
 	"github.com/stafiprotocol/solana-go-sdk/client"
@@ -37,32 +38,27 @@ func TestAccountInfo(t *testing.T) {
 }
 
 func TestGetAccountInfo(t *testing.T) {
-	c := client.NewClient(client.DevnetRPCEndpoint)
-	account, err := c.GetAccountInfo(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX",
-		client.GetAccountInfoConfig{
-			Encoding: client.GetAccountInfoConfigEncodingBase64,
-			DataSlice: client.GetAccountInfoConfigDataSlice{
-				Offset: 0,
-				Length: 200,
-			},
-		})
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := client.NewClient("http://127.0.0.1:8899")
+	// account, err := c.GetAccountInfo(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX",
+	// 	client.GetAccountInfoConfig{
+	// 		Encoding: client.GetAccountInfoConfigEncodingBase64,
+	// 		DataSlice: client.GetAccountInfoConfigDataSlice{
+	// 			Offset: 0,
+	// 			Length: 200,
+	// 		},
+	// 	})
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
 
-	t.Log(account)
+	// t.Log(account)
 
-	accountInfo, err := c.GetStakeAccountInfo(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Sprintf("%+v", accountInfo))
+	// accountInfo, err := c.GetStakeAccountInfo(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX")
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// t.Log(fmt.Sprintf("%+v", accountInfo))
 
-	accountInfo, err = c.GetStakeAccountInfo(context.Background(), "mNzHTv7KtARcYyJiaXH3SU2oSnLoXKVJxcxDknC2kae")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Sprintf("%+v", accountInfo))
 
 	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX", client.GetStakeActivationConfig{})
 	if err != nil {
@@ -74,7 +70,7 @@ func TestGetAccountInfo(t *testing.T) {
 
 func TestGetStakeActivation(t *testing.T) {
 	c := client.NewClient("http://127.0.0.1:8899")
-	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "D17ya9gd9xRSMwqjpzixXx341gPF2sNzKft5CMnToF8h", client.GetStakeActivationConfig{})
+	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep", client.GetStakeActivationConfig{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,22 +78,35 @@ func TestGetStakeActivation(t *testing.T) {
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	c := client.NewClient("https://solana-rpc1.stafi.io")
+	c := client.NewClient("http://127.0.0.1:8899")
 	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D17ya9gd9xRSMwqjpzixXx341gPF2sNzKft5CMnToF8h")
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep")
 	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "ATY5PSBVExLoFb2CnRj1e9nUVghcvLcrvbhcYMud1d4F")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(accountActivateInfo.StakeAccount.Info.Stake.Delegation.Stake)
 	t.Log(fmt.Sprintf("%+v", accountActivateInfo))
-	accountActivateInfo2, err := c.GetStakeActivation(context.Background(), "2usyY4HuMCfZW6CGjzdUuheMxh71HPQFkyZZW61qAxAq", client.GetStakeActivationConfig{})
+	accountActivateInfoBase1, err := c.GetStakeAccountInfo(context.Background(), "J6L2EyHooCuRLKR17ABFmLmCD9Uq9xwDuboJUpZ5wdH7")
+	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "ATY5PSBVExLoFb2CnRj1e9nUVghcvLcrvbhcYMud1d4F")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(accountActivateInfoBase1.StakeAccount.Info.Stake.Delegation.Stake)
+	t.Log(fmt.Sprintf("%+v", accountActivateInfoBase1))
+
+	accountActivateInfo2, err := c.GetStakeActivation(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep", client.GetStakeActivationConfig{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Sprintf("%+v", accountActivateInfo2))
+	accountActivateInfoBase, err := c.GetStakeActivation(context.Background(), "J6L2EyHooCuRLKR17ABFmLmCD9Uq9xwDuboJUpZ5wdH7", client.GetStakeActivationConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Sprintf("%+v", accountActivateInfoBase))
 
-	account, err := c.GetAccountInfo(context.Background(), "2usyY4HuMCfZW6CGjzdUuheMxh71HPQFkyZZW61qAxAq",
+	account, err := c.GetAccountInfo(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep",
 		client.GetAccountInfoConfig{
 			Encoding: client.GetAccountInfoConfigEncodingBase64,
 			DataSlice: client.GetAccountInfoConfigDataSlice{
@@ -199,18 +208,14 @@ func TestGetTransaction(t *testing.T) {
 }
 
 func TestGetConfirmedTransaction(t *testing.T) {
-	for {
 
-		c := client.NewClient("https://solana-api.projectserum.com")
-		info, err := c.GetConfirmedTransaction(context.Background(), "EhYn9vdJwCLsQdSrCu2q6okMMy11tVg1cG395h13XMtVCELUag2P54Jfu1ZKp8mpC9U1bQepo9LDTCRipQhewVk")
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Log(fmt.Sprintf("%+v", info))
-		for _, tx := range info.Meta.LogMessages {
-			t.Log(tx)
-		}
+	c := client.NewClient("http://127.0.0.1:8899")
+	info, err := c.GetConfirmedTransaction(context.Background(), "xSSTW1CZoFn3hxBWHXzd6dAh6duiczZmV1H5KgTQGEL2bxY8gZwKak8N3nsmi6NX2X21pgiwnrZQHe9sHa6dwys")
+	if err != nil {
+		t.Fatal(err)
 	}
+	t.Log(fmt.Sprintf("%+v", info))
+	t.Log(info.Meta.PreBalances[0] - info.Meta.PostBalances[0])
 }
 
 type EventTransferOut struct {
@@ -267,24 +272,24 @@ func TestParseLog(t *testing.T) {
 func TestGetSignaturesForAddress(t *testing.T) {
 	// c := client.NewClient("https://solana-api.projectserum.com")
 	// for {
-		c := client.NewClient("https://api.mainnet-beta.solana.com")
-		info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetConfirmedSignaturesForAddressConfig{
-			Limit:      1000,
-			Until:      "",
-			Commitment: "",
-		})
+	c := client.NewClient("https://api.mainnet-beta.solana.com")
+	info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetConfirmedSignaturesForAddressConfig{
+		Limit:      1000,
+		Until:      "",
+		Commitment: "",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// t.Log(fmt.Sprintf("%+v", info))
+	for _, sig := range info {
+		tx, err := c.GetConfirmedTransaction(context.Background(), sig.Signature)
 		if err != nil {
 			t.Fatal(err)
 		}
-		// t.Log(fmt.Sprintf("%+v", info))
-		for _, sig := range info {
-			tx, err := c.GetConfirmedTransaction(context.Background(), sig.Signature)
-			if err != nil {
-				t.Fatal(err)
-			}
-			t.Log(tx)
+		t.Log(tx)
 
-		}
+	}
 	// }
 }
 
@@ -311,4 +316,27 @@ func TestGetTokenAccount(t *testing.T) {
 	t.Log(fmt.Sprintf("%+v", accountInfo))
 	t.Log(fmt.Sprintf("%+v", accountInfo.Mint.ToBase58()))
 	t.Log(hex.EncodeToString(bridgeprog.InstructionTransferOut[:]))
+}
+
+func TestDecodeAccount(t *testing.T) {
+	pool := common.PublicKeyFromString("AycgB5EyyTmuQCrKTkymFQnn6F3PPNRyKuzv6dkuwBhc")
+	t.Log(hex.EncodeToString(pool.Bytes()))
+	sub1 := common.PublicKeyFromString("D2Qux8umtJ6VAaBuLfDPi9VyHBHhiEB1dKhPKFocKg6q")
+	t.Log(hex.EncodeToString(sub1.Bytes()))
+	sub2 := common.PublicKeyFromString("9t2Lcij5eGjKN6xPnJkvvM87tyT7QXQ2P5EJyQF7t4jP")
+	t.Log(hex.EncodeToString(sub2.Bytes()))
+	sub3 := common.PublicKeyFromString("H92d4fR7Jdcxag7JCUAhBKAhnxiS6sWcKhxADLk4dERU")
+	t.Log(hex.EncodeToString(sub3.Bytes()))
+	receiver := common.PublicKeyFromString("EeTKji2jWLrBeyAzxuonVX3s3DMZip9kBdvH1s5VunET")
+	t.Log(hex.EncodeToString(receiver.Bytes()))
+
+	user := common.PublicKeyFromString("8pFiM2vyEzyYL7oJqaK2CgHPnARFdziM753rDHWsnhU1")
+	t.Log(hex.EncodeToString(user.Bytes()))
+
+	txHash, _ := base58.Decode("5KZtV2942PxsbQqVircQtitEbe9CHqPMbAHswoKpKJZWNfeR6az9mUTSvgcvAE2rQu8cYjpb1uBVtFxnxk244dny")
+	t.Log(hex.EncodeToString(txHash))
+
+	blockHash, _ := base58.Decode("EfR8YmcTSXr3QDHoehtzSDT6FMaAWMhys1i6kaiCZt85")
+	t.Log(hex.EncodeToString(blockHash))
+
 }

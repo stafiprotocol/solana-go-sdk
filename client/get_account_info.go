@@ -62,9 +62,11 @@ func (s *Client) GetAccountInfo(ctx context.Context, account string, cfg GetAcco
 	if err != nil {
 		return GetAccountInfoResponse{}, err
 	}
+	//rpc err
 	if res.Error != (ErrorResponse{}) {
 		return GetAccountInfoResponse{}, errors.New(res.Error.Message)
 	}
+	// not found err
 	if res.Result.Value == (GetAccountInfoResponse{}) {
 		return GetAccountInfoResponse{}, ErrAccountNotFound
 	}

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -15,8 +14,8 @@ const (
 	DevnetRPCEndpoint  = "https://api.devnet.solana.com"
 	TestnetRPCEndpoint = "https://testnet.solana.com"
 	MainnetRPCEndpoint = "https://api.mainnet-beta.solana.com"
-	retryLimit         = 60 * 6
-	waitTime           = time.Second * 5
+	retryLimit         = 60 * 10
+	waitTime           = time.Second * 3
 )
 
 type Commitment string
@@ -36,6 +35,8 @@ func NewClient(endpoint string) *Client {
 	return &Client{endpoint: endpoint}
 }
 
+// err will retry: 1) connection err 2) body read err 3) status code err
+// err will return: 1) reach retry err 2) rpc res error
 func (s *Client) request(ctx context.Context, method string, params []interface{}, response interface{}) error {
 	// post data
 	j, err := json.Marshal(map[string]interface{}{
@@ -87,26 +88,10 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 				retry++
 				continue
 			}
-
-			//check err object
-			ge := GeneralResponse{}
-			err = json.Unmarshal(body, &ge)
-			if err != nil {
-				time.Sleep(waitTime)
-				retry++
-				continue
-			} else if ge.Error != (ErrorResponse{}) {
-				err = errors.New(ge.Error.Message)
-				time.Sleep(waitTime)
-				retry++
-				continue
-			}
-
 		}
-		// return result
+		// check status code
 		if res.StatusCode < 200 || res.StatusCode > 300 {
 			err = fmt.Errorf("get status code: %d", res.StatusCode)
-			fmt.Println(err)
 			time.Sleep(waitTime)
 			retry++
 			continue
