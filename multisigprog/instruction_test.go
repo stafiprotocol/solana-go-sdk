@@ -18,9 +18,14 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var multisigProgramIDDev = common.PublicKeyFromString("GfNeBVNszjgfV7gae6G4FGMsUHUrnXoNV1Q8bNzsfHRv")
+// var multisigProgramIDDev = common.PublicKeyFromString("GfNeBVNszjgfV7gae6G4FGMsUHUrnXoNV1Q8bNzsfHRv")
+var multisigProgramIDDev = common.PublicKeyFromString("G6ZS2HHHG8sbzTgx6QxbXLLmDLRXvAZuxi5vz8PQ9HF4")
 var localClient = "https://api.devnet.solana.com"
 
+func getMultisigTxAccountPubkey(baseAccount, programID, stakeBaseAccount common.PublicKey, index int) (common.PublicKey, string) {
+	seed := fmt.Sprintf("initAccount:%s:%d", stakeBaseAccount.ToBase58()[:8], index)
+	return common.CreateWithSeed(baseAccount, seed, programID), seed
+}
 func TestMultisigTransfer(t *testing.T) {
 	c := client.NewClient(localClient)
 
@@ -39,6 +44,7 @@ func TestMultisigTransfer(t *testing.T) {
 	accountA := types.NewAccount()
 	accountB := types.NewAccount()
 	accountC := types.NewAccount()
+	accountBase := types.NewAccount()
 	multiSigner, nonce, err := common.FindProgramAddress([][]byte{multisigAccount.PublicKey.Bytes()}, multisigProgramIDDev)
 	if err != nil {
 		fmt.Println(err)
@@ -73,8 +79,9 @@ func TestMultisigTransfer(t *testing.T) {
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	seed := fmt.Sprintf("8112%d",rand.Int())
-	transactionAccountPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, multisigProgramIDDev)
+
+	useRand := rand.New(rand.NewSource(time.Now().Unix()))
+	transactionAccountPubkey, seed := getMultisigTxAccountPubkey(accountBase.PublicKey, multisigProgramIDDev, accountA.PublicKey, useRand.Intn(20))
 
 	fmt.Println("createMultisig txHash:", txHash)
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
@@ -85,6 +92,7 @@ func TestMultisigTransfer(t *testing.T) {
 	fmt.Println("accountA", accountA.PublicKey.ToBase58())
 	fmt.Println("accountB", accountB.PublicKey.ToBase58())
 	fmt.Println("accountC", accountC.PublicKey.ToBase58())
+	fmt.Println("accountBase", accountBase.PublicKey.ToBase58())
 
 	//send 2 sol to account multisigner
 	rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
@@ -118,7 +126,7 @@ func TestMultisigTransfer(t *testing.T) {
 	accountMetas := make([][]types.AccountMeta, 0)
 	datas := make([][]byte, 0)
 	instructions := make([]types.Instruction, 0)
-	for i := 0; i < 7; i++ {
+	for i := 0; i < 2; i++ {
 		programIds = append(programIds, common.SystemProgramID)
 		accountMetas = append(accountMetas, transferInstruct.Accounts)
 		datas = append(datas, transferInstruct.Data)
@@ -130,14 +138,14 @@ func TestMultisigTransfer(t *testing.T) {
 			sysprog.CreateAccountWithSeed(
 				feePayer.PublicKey,
 				transactionAccountPubkey,
-				feePayer.PublicKey,
+				accountBase.PublicKey,
 				multisigProgramIDDev,
 				seed,
 				1000000000,
 				1000,
 			),
 		},
-		Signers:         []types.Account{feePayer},
+		Signers:         []types.Account{feePayer, accountBase},
 		FeePayer:        feePayer.PublicKey,
 		RecentBlockHash: res.Blockhash,
 	})
@@ -979,26 +987,20 @@ func TestSplit(t *testing.T) {
 }
 
 func TestBaseToHex(t *testing.T) {
-	pubkey := common.PublicKeyFromString("9x6WP6TCYGRMvxZTqLmmNgbZCWCWTP9Roq9vVNrmphjx")
-	t.Log(hex.EncodeToString(pubkey.Bytes()))
-	pubkey = common.PublicKeyFromString("4gK7CJc8EepimFR5MhhL2Bzq6vFXUyePew2ivbchrek5")
-	t.Log(hex.EncodeToString(pubkey.Bytes()))
-	pubkey = common.PublicKeyFromString("2hNMLYb3DPqTKPi1s2KuSCYNMzoJBP524JUyEiS1dTA6")
-	t.Log(hex.EncodeToString(pubkey.Bytes()))
-	pubkey = common.PublicKeyFromString("4amNawQen9W2ryD9qAn3rwVRMCJJqVWjXWGojqe2RNVh")
-	t.Log(hex.EncodeToString(pubkey.Bytes()))
-	pubkey = common.PublicKeyFromString("9Riwnxn53S4wmy5h5nbQN1gxTCm1EvgqB4Gc5aKDAPyc")
-	t.Log(hex.EncodeToString(pubkey.Bytes()))
 
-	bts, _ := base58.Decode("3x6Pn8WKF6z8dtSU1pCoptZ8v83gw5dgL1NZXJtvimStpaq92Q8cy8NwSBJRRUWpQvXchBixw1fxdp12GUfRJs4n")
-	t.Log(hex.EncodeToString(bts))
-	pubkey = common.PublicKeyFromString("8pFiM2vyEzyYL7oJqaK2CgHPnARFdziM753rDHWsnhU1")
-	t.Log(hex.EncodeToString(pubkey.Bytes()))
-	bts, _ = base58.Decode("5dK58gKYcX1aNVvueLWEKPjcMBEAVgppkrhe1wjh8WCA")
-	t.Log(hex.EncodeToString(bts))
-	bts, _ = base58.Decode("8XS3TqX4dEkEjeNGRjCCcwfGeNJEuKCgRetL6UAmtXVT")
-	t.Log(hex.EncodeToString(bts))
+	address1s := []string{
+		"FSMtfF5Deie4GnkQiA47GEWAPQdc7zQwRRMFwfkx2hJU",
+		"4KsxLnaVdDxjt9e3sysJ39NPGFZDLPyNGUKLxuAjcscK",
+		"5zV7tW4ZNXJgpNSi6koUrgoB4G9uJqRFP3gzMxzrZ7C4",
+		"J19tyq9PwCxbN4y3Dwb3bCGzSRJPJhC5frjK4ibiXDKq",
+		"JBdSaFnsjqyC4QpHHbLnALoPE22Y5zBnKbXNFNXs26bD",
+		"4zYEZbrqRP7gT7TvUv3TNqtNhVvSWsGuZyTjDydPsN4B",
+	}
 
+	for _, address := range address1s {
+		pubkey := common.PublicKeyFromString(address)
+		t.Log(address, hex.EncodeToString(pubkey.Bytes()))
+	}
 }
 
 func TestMultisigSetThreshold(t *testing.T) {
@@ -1219,4 +1221,8 @@ func TestMultisigSetThreshold(t *testing.T) {
 		t.Log(fmt.Sprintf("multisig account info %+v", info))
 		break
 	}
+}
+
+func TestGetByteCode(t *testing.T) {
+	fmt.Println(hex.EncodeToString(multisigprog.InstructionCreateTransaction[:]))
 }

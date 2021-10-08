@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,8 +15,8 @@ const (
 	DevnetRPCEndpoint  = "https://api.devnet.solana.com"
 	TestnetRPCEndpoint = "https://testnet.solana.com"
 	MainnetRPCEndpoint = "https://api.mainnet-beta.solana.com"
-	retryLimit         = 60
-	waitTime           = time.Second * 2
+	retryLimit         = 60 * 4
+	waitTime           = time.Second * 5
 )
 
 type Commitment string
@@ -63,32 +64,53 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 		if retry > retryLimit {
 			return fmt.Errorf("httpclient reach retry limit, err: %s", err)
 		}
+
 		res, err = httpclient.Do(req)
 		if err != nil {
 			time.Sleep(waitTime)
 			retry++
 			continue
-		} else {
-			break
 		}
-	}
 
-	defer res.Body.Close()
-
-	// parse body
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-	if len(body) != 0 {
-		if err := json.Unmarshal(body, &response); err != nil {
-			return err
+		defer res.Body.Close()
+		// parse body
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			time.Sleep(waitTime)
+			retry++
+			continue
 		}
-	}
 
-	// return result
-	if res.StatusCode < 200 || res.StatusCode > 300 {
-		return fmt.Errorf("get status code: %d", res.StatusCode)
+		if len(body) != 0 {
+			if err = json.Unmarshal(body, &response); err != nil {
+				time.Sleep(waitTime)
+				retry++
+				continue
+			}
+
+			//check err object
+			ge := GeneralResponse{}
+			err = json.Unmarshal(body, &ge)
+			if err != nil {
+				time.Sleep(waitTime)
+				retry++
+				continue
+			} else if ge.Error != (ErrorResponse{}) {
+				err = errors.New(ge.Error.Message)
+				time.Sleep(waitTime)
+				retry++
+				continue
+			}
+
+		}
+		// return result
+		if res.StatusCode < 200 || res.StatusCode > 300 {
+			err = fmt.Errorf("get status code: %d", res.StatusCode)
+			time.Sleep(waitTime)
+			retry++
+			continue
+		}
+		break
 	}
 	return nil
 }

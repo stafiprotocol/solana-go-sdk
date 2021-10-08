@@ -82,13 +82,14 @@ func TestGetStakeActivation(t *testing.T) {
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	c := client.NewClient("http://127.0.0.1:8899")
+	c := client.NewClient("https://solana-rpc1.stafi.io")
 	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D17ya9gd9xRSMwqjpzixXx341gPF2sNzKft5CMnToF8h")
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "Gnr9LuHUh85Dt7Qr3tayXrxFAEn32jRDfsgTAyywFhyh")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
 	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "ATY5PSBVExLoFb2CnRj1e9nUVghcvLcrvbhcYMud1d4F")
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log(accountActivateInfo.StakeAccount.Info.Stake.Delegation.Stake)
 	t.Log(fmt.Sprintf("%+v", accountActivateInfo))
 	accountActivateInfo2, err := c.GetStakeActivation(context.Background(), "2usyY4HuMCfZW6CGjzdUuheMxh71HPQFkyZZW61qAxAq", client.GetStakeActivationConfig{})
 	if err != nil {
@@ -150,16 +151,18 @@ func TestGetMintProposalInfo(t *testing.T) {
 }
 
 func TestGetBlock(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetBlock(context.Background(), 80837538, client.GetBlockConfig{})
+	c := client.NewClient("https://solana-rpc1.stafi.io")
+	c2 := client.NewClient("https://free.rpcpool.com")
+	info, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
 	if err != nil {
 		t.Fatal(err)
 	}
-	// t.Log(fmt.Printf("%+v", info))
-
-	for _, tx := range info.Transactions {
-		t.Log(tx.Meta.LogMessages)
+	t.Log(fmt.Printf("info%+v", info))
+	info2, err := c2.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
+	if err != nil {
+		t.Fatal(err)
 	}
+	t.Log(fmt.Printf("info2%+v", info2))
 }
 
 func TestGetConfirmedBlock(t *testing.T) {
@@ -196,24 +199,18 @@ func TestGetTransaction(t *testing.T) {
 }
 
 func TestGetConfirmedTransaction(t *testing.T) {
-	c := client.NewClient("https://explorer-api.devnet.solana.com")
-	info, err := c.GetConfirmedTransaction(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Sprintf("%+v", info))
-	for _, tx := range info.Meta.LogMessages {
-		t.Log(tx)
-	}
-}
+	for {
 
-func TestGetBlockHeight(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
-	if err != nil {
-		t.Fatal(err)
+		c := client.NewClient("https://solana-api.projectserum.com")
+		info, err := c.GetConfirmedTransaction(context.Background(), "EhYn9vdJwCLsQdSrCu2q6okMMy11tVg1cG395h13XMtVCELUag2P54Jfu1ZKp8mpC9U1bQepo9LDTCRipQhewVk")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Log(fmt.Sprintf("%+v", info))
+		for _, tx := range info.Meta.LogMessages {
+			t.Log(tx)
+		}
 	}
-	t.Log(fmt.Sprintf("%+v", info))
 }
 
 type EventTransferOut struct {
@@ -238,6 +235,8 @@ func TestParseLog(t *testing.T) {
 	t.Log(accountDataBts[:8])
 	t.Log(bridgeprog.EventTransferOut)
 	t.Log(base64.StdEncoding.EncodeToString(bridgeprog.EventTransferOut[:]))
+	mintAccount, _ := base64.StdEncoding.DecodeString("AQAAAIJ1WvlDiMw3kmHeTwTkJCzhDg/le+J3e7lDcwGaMPpIAAAAAAAAAAAJAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==")
+	t.Log(hex.EncodeToString(mintAccount))
 	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:9]))
 	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:10]))
 	// t.Log(base64.StdEncoding.EncodeToString(accountDataBts[:11]))
@@ -266,22 +265,32 @@ func TestParseLog(t *testing.T) {
 // FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51
 
 func TestGetSignaturesForAddress(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
-	info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51", client.GetConfirmedSignaturesForAddressConfig{
-		Limit:      1000,
-		Before:     "5yhpbdfLBJvstkpv2RaE4A98xGiEanrznt2yAV22ooxedLTSThQFXmvUyRboJX38e2UKokZtBvYMcQonLxQ8j6SD",
-		Until:      "2T64SSqK3X6xQsbqEgx5THTXFtKHmL14gfbMX1sZaXdqfpGbA3CcTab57p2jw9qEHnYnHbYavKtoyz1wxYZP8vDi",
-		Commitment: "",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Sprintf("%+v", info))
+	// c := client.NewClient("https://solana-api.projectserum.com")
+	// for {
+		c := client.NewClient("https://api.mainnet-beta.solana.com")
+		info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetConfirmedSignaturesForAddressConfig{
+			Limit:      1000,
+			Until:      "",
+			Commitment: "",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		// t.Log(fmt.Sprintf("%+v", info))
+		for _, sig := range info {
+			tx, err := c.GetConfirmedTransaction(context.Background(), sig.Signature)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Log(tx)
+
+		}
+	// }
 }
 
 func TestGetTokenAccount(t *testing.T) {
 	c := client.NewClient("https://api.mainnet-beta.solana.com")
-	miniMumBalance200, err := c.GetMinimumBalanceForRentExemption(context.Background(), 200)
+	miniMumBalance200, err := c.GetMinimumBalanceForRentExemption(context.Background(), 300000)
 	if err != nil {
 		t.Fatal(err)
 	}
