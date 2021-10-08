@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"time"
 )
 
 var ErrAccountNotFound = errors.New("AccountNotFound")
@@ -60,31 +58,15 @@ func (s *Client) GetAccountInfo(ctx context.Context, account string, cfg GetAcco
 			Value   GetAccountInfoResponse `json:"value"`
 		} `json:"result"`
 	}{}
-
-	var retry = 0
-	var err error
-	for {
-		if retry > retryLimit {
-			return GetAccountInfoResponse{}, fmt.Errorf("getAccountInfo reach retry limit, err %s", err)
-		}
-		err := s.request(ctx, "getAccountInfo", []interface{}{account, cfg}, &res)
-		if err != nil {
-			return GetAccountInfoResponse{}, err
-		}
-
-		if res.Error != (ErrorResponse{}) {
-			err = errors.New(res.Error.Message)
-			retry++
-			time.Sleep(waitTime)
-			continue
-		}
-		if res.Result.Value == (GetAccountInfoResponse{}) {
-			err = ErrAccountNotFound
-			retry++
-			time.Sleep(waitTime)
-			continue
-		}
-		break
+	err := s.request(ctx, "getAccountInfo", []interface{}{account, cfg}, &res)
+	if err != nil {
+		return GetAccountInfoResponse{}, err
+	}
+	if res.Error != (ErrorResponse{}) {
+		return GetAccountInfoResponse{}, errors.New(res.Error.Message)
+	}
+	if res.Result.Value == (GetAccountInfoResponse{}) {
+		return GetAccountInfoResponse{}, ErrAccountNotFound
 	}
 	return res.Result.Value, nil
 }
