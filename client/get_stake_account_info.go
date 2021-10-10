@@ -9,11 +9,12 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/common"
 )
 
+var StakeAccountInfoLengthDefault = uint64(200)
 var GetStakeAccountInfoConfigDefault = GetAccountInfoConfig{
 	Encoding: GetAccountInfoConfigEncodingBase64,
 	DataSlice: GetAccountInfoConfigDataSlice{
 		Offset: 0,
-		Length: 200,
+		Length: StakeAccountInfoLengthDefault,
 	},
 }
 

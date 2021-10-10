@@ -15,8 +15,17 @@ type GetMultisigInfoAccountInfo struct {
 	OwnerSetSeqno uint32
 }
 
+var MultisigInfoAccountLengthDefault = uint64(1000)
+var GetMultsigInfoAccountInfoCfgDefault = GetAccountInfoConfig{
+	Encoding: GetAccountInfoConfigEncodingBase64,
+	DataSlice: GetAccountInfoConfigDataSlice{
+		Offset: 0,
+		Length: MultisigInfoAccountLengthDefault,
+	},
+}
+
 func (s *Client) GetMultisigInfoAccountInfo(ctx context.Context, account string) (*GetMultisigInfoAccountInfo, error) {
-	accountInfo, err := s.GetAccountInfo(ctx, account, GetMultsigTxAccountInfoCfgDefault)
+	accountInfo, err := s.GetAccountInfo(ctx, account, GetMultsigInfoAccountInfoCfgDefault)
 	if err != nil {
 		return nil, err
 	}
