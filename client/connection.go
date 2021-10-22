@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -28,11 +29,28 @@ const (
 )
 
 type Client struct {
-	endpoint string
+	index        int
+	indexMutex   sync.Mutex
+	endpointList []string
 }
 
-func NewClient(endpoint string) *Client {
-	return &Client{endpoint: endpoint}
+func NewClient(endpointList []string) *Client {
+	if len(endpointList) == 0 {
+		panic("endpoint empty")
+	}
+	return &Client{endpointList: endpointList}
+}
+
+func (s *Client) Endpoint() string {
+	return s.endpointList[s.index]
+}
+
+func (s *Client) ChangeEndpoint() {
+	s.indexMutex.Lock()
+	defer s.indexMutex.Unlock()
+
+	next := (s.index + 1) % len(s.endpointList)
+	s.index = next
 }
 
 // err will retry: 1) connection err 2) body read err 3) status code err
@@ -50,7 +68,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 	}
 
 	// post request
-	req, err := http.NewRequestWithContext(ctx, "POST", s.endpoint, bytes.NewBuffer(j))
+	req, err := http.NewRequestWithContext(ctx, "POST", s.Endpoint(), bytes.NewBuffer(j))
 	if err != nil {
 		return err
 	}
@@ -60,12 +78,13 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 	httpclient := &http.Client{}
 
 	retry := 0
-	var res *http.Response
 	for {
+		s.ChangeEndpoint()
 		if retry > retryLimit {
 			return fmt.Errorf("httpclient reach retry limit, err: %s", err)
 		}
 
+		var res *http.Response
 		res, err = httpclient.Do(req)
 		if err != nil {
 			time.Sleep(waitTime)
@@ -73,12 +92,13 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			continue
 		}
 
-		defer res.Body.Close()
 		// parse body
-		body, err := ioutil.ReadAll(res.Body)
+		var body []byte
+		body, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			time.Sleep(waitTime)
 			retry++
+			res.Body.Close()
 			continue
 		}
 
@@ -86,6 +106,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			if err = json.Unmarshal(body, &response); err != nil {
 				time.Sleep(waitTime)
 				retry++
+				res.Body.Close()
 				continue
 			}
 		}
@@ -94,8 +115,11 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			err = fmt.Errorf("get status code: %d", res.StatusCode)
 			time.Sleep(waitTime)
 			retry++
+			res.Body.Close()
 			continue
 		}
+
+		res.Body.Close()
 		break
 	}
 	return nil

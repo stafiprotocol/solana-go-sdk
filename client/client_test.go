@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/mr-tron/base58"
 	"github.com/near/borsh-go"
@@ -17,19 +18,23 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
+var c = client.NewClient([]string{client.DevnetRPCEndpoint})
+
 func TestAccountInfo(t *testing.T) {
-	c := client.NewClient(client.DevnetRPCEndpoint)
 
 	wg := sync.WaitGroup{}
-	wg.Add(10)
+	wg.Add(30)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 30; i++ {
 		go func() {
+			time.Sleep(time.Second)
+			c.ChangeEndpoint()
 			accountInfo, err := c.GetMultisigTxAccountInfo(context.Background(), "D6nA6QHpYQDMeudHLwZqgwyCJfRSKWfzW4kyaKqmnsr4")
 			if err != nil {
-				t.Fatal(err)
+				t.Log(err)
+			} else {
+				t.Log(fmt.Printf("%+v", accountInfo))
 			}
-			t.Log(fmt.Printf("%+v", accountInfo))
 			wg.Done()
 		}()
 	}
@@ -37,39 +42,7 @@ func TestAccountInfo(t *testing.T) {
 	wg.Wait()
 }
 
-func TestGetAccountInfo(t *testing.T) {
-	c := client.NewClient("http://127.0.0.1:8899")
-	// account, err := c.GetAccountInfo(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX",
-	// 	client.GetAccountInfoConfig{
-	// 		Encoding: client.GetAccountInfoConfigEncodingBase64,
-	// 		DataSlice: client.GetAccountInfoConfigDataSlice{
-	// 			Offset: 0,
-	// 			Length: 200,
-	// 		},
-	// 	})
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// t.Log(account)
-
-	// accountInfo, err := c.GetStakeAccountInfo(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	// t.Log(fmt.Sprintf("%+v", accountInfo))
-
-
-	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "DiPx1Vyo5khyG8XKTc8Tu4fL9qc57VSqfr7qh3xLxqjX", client.GetStakeActivationConfig{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Sprintf("%+v", accountActivateInfo))
-
-}
-
 func TestGetStakeActivation(t *testing.T) {
-	c := client.NewClient("http://127.0.0.1:8899")
 	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep", client.GetStakeActivationConfig{})
 	if err != nil {
 		t.Fatal(err)
@@ -78,21 +51,15 @@ func TestGetStakeActivation(t *testing.T) {
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	c := client.NewClient("http://127.0.0.1:8899")
-	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D17ya9gd9xRSMwqjpzixXx341gPF2sNzKft5CMnToF8h")
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep")
-	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "ATY5PSBVExLoFb2CnRj1e9nUVghcvLcrvbhcYMud1d4F")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "Eq2T5683L891HMeGcQHsFbva5fE8795SrXYDJMAQ4Cnq")
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(accountActivateInfo.StakeAccount.Info.Stake.Delegation.Stake)
 	t.Log(fmt.Sprintf("%+v", accountActivateInfo))
-	accountActivateInfoBase1, err := c.GetStakeAccountInfo(context.Background(), "J6L2EyHooCuRLKR17ABFmLmCD9Uq9xwDuboJUpZ5wdH7")
-	// accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "ATY5PSBVExLoFb2CnRj1e9nUVghcvLcrvbhcYMud1d4F")
+	accountActivateInfoBase1, err := c.GetStakeAccountInfo(context.Background(), "AgFCNmujMooFHY378Hb2cvMieXdQS5nP7xXdwWPVytig")
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(accountActivateInfoBase1.StakeAccount.Info.Stake.Delegation.Stake)
 	t.Log(fmt.Sprintf("%+v", accountActivateInfoBase1))
 
 	accountActivateInfo2, err := c.GetStakeActivation(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep", client.GetStakeActivationConfig{})
@@ -122,7 +89,6 @@ func TestGetStakeAccountInfo(t *testing.T) {
 }
 
 func TestGetMultisigTxInfo(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
 	info, err := c.GetMultisigTxAccountInfo(context.Background(), "Gn3Wzs1rbeJcTefiEwZ8c8vJZjNZeSm5WUxbYC5ji74F")
 	if err != nil {
 		t.Fatal(err)
@@ -131,7 +97,6 @@ func TestGetMultisigTxInfo(t *testing.T) {
 }
 
 func TestGetMultisigInfoAccount(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
 	info, err := c.GetMultisigInfoAccountInfo(context.Background(), "8TNEsKSzFsi6b56JwhpHWLZf9mR81LGDcQQka5EtVux7")
 	if err != nil {
 		t.Fatal(err)
@@ -140,8 +105,6 @@ func TestGetMultisigInfoAccount(t *testing.T) {
 }
 
 func TestGetBridgeAccountInfo(t *testing.T) {
-	// c := client.NewClient("https://api.devnet.solana.com")
-	c := client.NewClient("https://solana-dev-rpc.wetez.io")
 	info, err := c.GetBridgeAccountInfo(context.Background(), "63ytYLeNDaaUx2u94KHJcoueaLzA7gryB26p2w8E53oh")
 	if err != nil {
 		t.Fatal(err)
@@ -151,7 +114,6 @@ func TestGetBridgeAccountInfo(t *testing.T) {
 }
 
 func TestGetMintProposalInfo(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
 	info, err := c.GetMintProposalInfo(context.Background(), "BtgxF9MgpB9JtxsgeyUKVos6E5N5NbB8BEZLq2RbgUyo")
 	if err != nil {
 		t.Fatal(err)
@@ -160,22 +122,14 @@ func TestGetMintProposalInfo(t *testing.T) {
 }
 
 func TestGetBlock(t *testing.T) {
-	c := client.NewClient("https://solana-rpc1.stafi.io")
-	c2 := client.NewClient("https://free.rpcpool.com")
 	info, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Printf("info%+v", info))
-	info2, err := c2.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(fmt.Printf("info2%+v", info2))
 }
 
 func TestGetConfirmedBlock(t *testing.T) {
-	c := client.NewClient("https://api.devnet.solana.com")
 	info, err := c.GetConfirmedBlock(context.Background(), 81048933)
 	if err != nil {
 		t.Fatal(err)
@@ -194,7 +148,6 @@ func TestGetConfirmedBlock(t *testing.T) {
 }
 
 func TestGetTransaction(t *testing.T) {
-	c := client.NewClient("https://explorer-api.devnet.solana.com")
 	info, err := c.GetTransaction(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa", client.GetTransactionWithLimitConfig{})
 	if err != nil {
 		t.Fatal(err)
@@ -208,8 +161,6 @@ func TestGetTransaction(t *testing.T) {
 }
 
 func TestGetConfirmedTransaction(t *testing.T) {
-
-	c := client.NewClient("http://127.0.0.1:8899")
 	info, err := c.GetConfirmedTransaction(context.Background(), "xSSTW1CZoFn3hxBWHXzd6dAh6duiczZmV1H5KgTQGEL2bxY8gZwKak8N3nsmi6NX2X21pgiwnrZQHe9sHa6dwys")
 	if err != nil {
 		t.Fatal(err)
@@ -270,9 +221,6 @@ func TestParseLog(t *testing.T) {
 // FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51
 
 func TestGetSignaturesForAddress(t *testing.T) {
-	// c := client.NewClient("https://solana-api.projectserum.com")
-	// for {
-	c := client.NewClient("https://api.mainnet-beta.solana.com")
 	info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetConfirmedSignaturesForAddressConfig{
 		Limit:      1000,
 		Until:      "",
@@ -294,7 +242,6 @@ func TestGetSignaturesForAddress(t *testing.T) {
 }
 
 func TestGetTokenAccount(t *testing.T) {
-	c := client.NewClient("https://api.mainnet-beta.solana.com")
 	miniMumBalance200, err := c.GetMinimumBalanceForRentExemption(context.Background(), 300000)
 	if err != nil {
 		t.Fatal(err)

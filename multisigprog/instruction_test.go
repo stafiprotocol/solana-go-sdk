@@ -21,13 +21,13 @@ import (
 // var multisigProgramIDDev = common.PublicKeyFromString("GfNeBVNszjgfV7gae6G4FGMsUHUrnXoNV1Q8bNzsfHRv")
 var multisigProgramIDDev = common.PublicKeyFromString("G6ZS2HHHG8sbzTgx6QxbXLLmDLRXvAZuxi5vz8PQ9HF4")
 var localClient = "https://api.devnet.solana.com"
+var c = client.NewClient([]string{localClient})
 
 func getMultisigTxAccountPubkey(baseAccount, programID, stakeBaseAccount common.PublicKey, index int) (common.PublicKey, string) {
 	seed := fmt.Sprintf("initAccount:%s:%d", stakeBaseAccount.ToBase58()[:8], index)
 	return common.CreateWithSeed(baseAccount, seed, programID), seed
 }
 func TestMultisigTransfer(t *testing.T) {
-	c := client.NewClient(localClient)
 
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
@@ -381,7 +381,6 @@ func TestDecodeBlockHash(t *testing.T) {
 }
 
 func TestMultisigStake(t *testing.T) {
-	c := client.NewClient(client.DevnetRPCEndpoint)
 
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
@@ -611,8 +610,6 @@ func TestMultisigStake(t *testing.T) {
 }
 
 func TestMultisigSplit(t *testing.T) {
-	c := client.NewClient(localClient)
-
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
@@ -1004,8 +1001,6 @@ func TestBaseToHex(t *testing.T) {
 }
 
 func TestMultisigSetThreshold(t *testing.T) {
-	c := client.NewClient(localClient)
-
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
