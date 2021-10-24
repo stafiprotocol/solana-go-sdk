@@ -18,7 +18,7 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var c = client.NewClient([]string{client.DevnetRPCEndpoint, client.MainnetRPCEndpoint})
+var c = client.NewClient([]string{client.MainnetRPCEndpoint, client.DevnetRPCEndpoint})
 
 func TestAccountInfo(t *testing.T) {
 
@@ -28,7 +28,6 @@ func TestAccountInfo(t *testing.T) {
 	for i := 0; i < 30; i++ {
 		go func(i int) {
 			time.Sleep(5 * time.Second)
-			c.ChangeEndpoint()
 			accountInfo, err := c.GetMultisigTxAccountInfo(context.Background(), "D6nA6QHpYQDMeudHLwZqgwyCJfRSKWfzW4kyaKqmnsr4")
 			if err != nil {
 				t.Log("err", i, err)

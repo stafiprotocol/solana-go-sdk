@@ -69,13 +69,12 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 
 	retry := 0
 	for {
-		s.ChangeEndpoint()
 		if retry > retryLimit {
 			return fmt.Errorf("httpclient reach retry limit, err: %s", err)
 		}
 		// post request
 		var req *http.Request
-		req, err = http.NewRequestWithContext(ctx, "POST", s.Endpoint(), bytes.NewBuffer(j))
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, s.Endpoint(), bytes.NewBuffer(j))
 		if err != nil {
 			return err
 		}
@@ -88,6 +87,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 		if err != nil {
 			time.Sleep(waitTime)
 			retry++
+			s.ChangeEndpoint()
 			continue
 		}
 
@@ -98,6 +98,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			time.Sleep(waitTime)
 			retry++
 			res.Body.Close()
+			s.ChangeEndpoint()
 			continue
 		}
 
@@ -106,6 +107,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 				time.Sleep(waitTime)
 				retry++
 				res.Body.Close()
+				s.ChangeEndpoint()
 				continue
 			}
 		}
@@ -115,6 +117,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			time.Sleep(waitTime)
 			retry++
 			res.Body.Close()
+			s.ChangeEndpoint()
 			continue
 		}
 
