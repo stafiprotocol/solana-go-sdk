@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -90,6 +91,16 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			s.ChangeEndpoint()
 			continue
 		}
+		// check status code
+		if res.StatusCode != http.StatusOK {
+			err = fmt.Errorf("status code: %d", res.StatusCode)
+			fmt.Println(err)
+			time.Sleep(waitTime)
+			retry++
+			res.Body.Close()
+			s.ChangeEndpoint()
+			continue
+		}
 
 		// parse body
 		var body []byte
@@ -102,18 +113,37 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			continue
 		}
 
-		if len(body) != 0 {
-			if err = json.Unmarshal(body, &response); err != nil {
-				time.Sleep(waitTime)
-				retry++
-				res.Body.Close()
-				s.ChangeEndpoint()
-				continue
-			}
+		if len(body) == 0 {
+			err = fmt.Errorf("body empty")
+			time.Sleep(waitTime)
+			retry++
+			res.Body.Close()
+			s.ChangeEndpoint()
+			continue
 		}
-		// check status code
-		if res.StatusCode < 200 || res.StatusCode > 300 {
-			err = fmt.Errorf("get status code: %d", res.StatusCode)
+
+		generayRes := GeneralResponse{}
+		err = json.Unmarshal(body, &generayRes)
+		if err != nil {
+			time.Sleep(waitTime)
+			retry++
+			res.Body.Close()
+			s.ChangeEndpoint()
+			continue
+		}
+
+		if generayRes.Error != (ErrorResponse{}) &&
+			strings.Contains(generayRes.Error.Message, http.StatusText(http.StatusServiceUnavailable)) {
+			err = fmt.Errorf("status 503")
+			fmt.Println(err)
+			time.Sleep(waitTime)
+			retry++
+			res.Body.Close()
+			s.ChangeEndpoint()
+			continue
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
 			time.Sleep(waitTime)
 			retry++
 			res.Body.Close()
