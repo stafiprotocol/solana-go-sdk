@@ -133,8 +133,8 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 		}
 
 		if generayRes.Error != (ErrorResponse{}) &&
-			strings.Contains(generayRes.Error.Message, http.StatusText(http.StatusServiceUnavailable)) {
-			err = fmt.Errorf("status 503")
+			strings.Contains(generayRes.Error.Message, "available") {
+			err = fmt.Errorf("body err: %s", generayRes.Error.Message)
 			fmt.Println(err)
 			time.Sleep(waitTime)
 			retry++
