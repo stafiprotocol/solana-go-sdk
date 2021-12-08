@@ -18,7 +18,7 @@ import (
 
 var bridgeProgramIdDev = common.PublicKeyFromString("FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51")
 var mintAccountPubkey = common.PublicKeyFromString("ApyYYc8URTrmvzTko5ffYuyJCZtVnULWq5qxM2tm1mYj")
-var localClient = "https://api.devnet.solana.com"
+var localClient = []string{"https://api.devnet.solana.com"}
 
 func TestCreateBridge(t *testing.T) {
 	c := client.NewClient(localClient)
@@ -63,7 +63,7 @@ func TestCreateBridge(t *testing.T) {
 				uint8(nonce),
 				[]uint8{1},
 				map[[32]byte]common.PublicKey{
-					[32]byte{1, 2, 3}: mintAccountPubkey,
+					{1, 2, 3}: mintAccountPubkey,
 				},
 				accountAdmin.PublicKey,
 				feeReceiver.PublicKey,

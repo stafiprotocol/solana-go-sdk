@@ -991,7 +991,7 @@ func TestBaseToHex(t *testing.T) {
 		"5zV7tW4ZNXJgpNSi6koUrgoB4G9uJqRFP3gzMxzrZ7C4",
 		"J19tyq9PwCxbN4y3Dwb3bCGzSRJPJhC5frjK4ibiXDKq",
 		"JBdSaFnsjqyC4QpHHbLnALoPE22Y5zBnKbXNFNXs26bD",
-		"4zYEZbrqRP7gT7TvUv3TNqtNhVvSWsGuZyTjDydPsN4B",
+		"9fDiSfwCCegEWgLFH23L94oGaSawZq4vFr1AkJd7D1e9",
 	}
 
 	for _, address := range address1s {

@@ -11,7 +11,9 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/sysprog"
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
+
 var multisigProgramIDDev = common.PublicKeyFromString("GfNeBVNszjgfV7gae6G4FGMsUHUrnXoNV1Q8bNzsfHRv")
+
 func TestCreateAccountWithSeed(t *testing.T) {
 	type args struct {
 		fromPubkey       common.PublicKey
@@ -495,7 +497,7 @@ func TestAuthorizeNonceAccount(t *testing.T) {
 }
 
 func ExampleCreateAccount() {
-	c := client.NewClient(client.DevnetRPCEndpoint)
+	c := client.NewClient([]string{client.DevnetRPCEndpoint})
 
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
@@ -537,7 +539,7 @@ func ExampleCreateAccount() {
 }
 
 func ExampleCreateAccountWithSeed() {
-	c := client.NewClient(client.DevnetRPCEndpoint)
+	c := client.NewClient([]string{client.DevnetRPCEndpoint})
 
 	res, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {

@@ -18,24 +18,22 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var c = client.NewClient([]string{client.MainnetRPCEndpoint, client.DevnetRPCEndpoint})
+// var c = client.NewClient([]string{"https://solana-dev-rpc.wetez.io"})
+var c = client.NewClient([]string{client.MainnetRPCEndpoint})
 
 func TestAccountInfo(t *testing.T) {
 
 	wg := sync.WaitGroup{}
 	wg.Add(30)
 
-	for i := 0; i < 30; i++ {
-		go func(i int) {
-			time.Sleep(5 * time.Second)
-			accountInfo, err := c.GetMultisigTxAccountInfo(context.Background(), "D6nA6QHpYQDMeudHLwZqgwyCJfRSKWfzW4kyaKqmnsr4")
-			if err != nil {
-				t.Log("err", i, err)
-			} else {
-				t.Log("success", i, fmt.Sprintf("%+v", accountInfo))
-			}
-			wg.Done()
-		}(i)
+	for i := 0; i < 300; i++ {
+		time.Sleep(1 * time.Second)
+		accountInfo, err := c.GetAccountInfo(context.Background(), "5STUJCFCFPbsagDNk6yBcpiHSPYCwgjjzbrJdWHopC9Q", client.GetAccountInfoConfig{})
+		if err != nil {
+			t.Log("err", i, err)
+		} else {
+			t.Log("success", i, fmt.Sprintf("%+v", accountInfo))
+		}
 	}
 
 	wg.Wait()
@@ -147,7 +145,11 @@ func TestGetConfirmedBlock(t *testing.T) {
 }
 
 func TestGetTransaction(t *testing.T) {
-	info, err := c.GetTransaction(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa", client.GetTransactionWithLimitConfig{})
+	info, err := c.GetTransactionV2(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = c.GetConfirmedTransaction(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa")
 	if err != nil {
 		t.Fatal(err)
 	}
