@@ -145,20 +145,16 @@ func TestGetConfirmedBlock(t *testing.T) {
 }
 
 func TestGetTransaction(t *testing.T) {
-	info, err := c.GetTransactionV2(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa")
+	info, err := c.GetTransactionV2(context.Background(), "3r61fK261bxV7uiJKr3jEiR2ysKarF23vMRexYaP5ZDYG5TtNiNw36v6GpuRVntokG7WgJzENS3iYYW9uzZSvbAU")
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = c.GetConfirmedTransaction(context.Background(), "2hF4qEu4xYX51Pu2ErcXcGKXojzbzfahhSNeMXXmFAkCW1Rom4uk51Tur7uuWfJmpMzcqFQkRFYEabdNqsz8m7fa")
+	t.Log(fmt.Sprintf("%+v", info))
+	info2, err := c.GetConfirmedTransaction(context.Background(), "3r61fK261bxV7uiJKr3jEiR2ysKarF23vMRexYaP5ZDYG5TtNiNw36v6GpuRVntokG7WgJzENS3iYYW9uzZSvbAU")
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	for _, tx := range info.Meta.LogMessages {
-		if strings.HasPrefix(tx, bridgeprog.EventTransferOutPrefix) {
-			t.Log(tx)
-		}
-	}
+	t.Log(fmt.Sprintf("%+v", info2))
 }
 
 func TestGetConfirmedTransaction(t *testing.T) {
