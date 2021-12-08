@@ -155,6 +155,21 @@ func TestGetTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Sprintf("%+v", info2))
+	blockHeight, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(blockHeight)
+	slot, err := c.GetSlot(context.Background(), client.GetSlotConfig{client.CommitmentFinalized})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(slot)
+	time, err := c.GetBlockTime(context.Background(), slot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(time)
 }
 
 func TestGetConfirmedTransaction(t *testing.T) {
