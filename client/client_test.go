@@ -19,9 +19,18 @@ import (
 )
 
 // var c = client.NewClient([]string{"https://solana-dev-rpc.wetez.io"})
-var c = client.NewClient([]string{client.MainnetRPCEndpoint})
+// var c = client.NewClient([]string{client.MainnetRPCEndpoint})
+var c = client.NewClient([]string{"https://solana-rpc1.stafi.io", "https://free.rpcpool.com"})
+
+// var c = client.NewClient([]string{"https://solana.public-rpc.com"})
+// var c = client.NewClient([]string{"https://free.rpcpool.com"})
+
+// var c = client.NewClient([]string{"https://solana-mainnet.phantom.tech"})
 
 func TestAccountInfo(t *testing.T) {
+	//user CWVd9HtYD2txbiiSwV3Ss33TGMqUVrS2F5sTs7XZQKWN
+	//tx 3mQXBo3FSJ3bvXj9moJx7mW3424mz8DnQjBjrCrzRp3T4bPT5xTtMnzib5Q7NCJf6fLyRSgpWaa5EBfL8EijLi2D
+	//block CEjkgbUm169E1bRaeUT7kWg2imJf3j2XZ2qjJCW2CHcU
 
 	wg := sync.WaitGroup{}
 	wg.Add(30)
@@ -39,6 +48,22 @@ func TestAccountInfo(t *testing.T) {
 	wg.Wait()
 }
 
+func TestGetVersion(t *testing.T) {
+	accountActivateInfo, err := c.GetVersion(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(fmt.Sprintf("%+v", accountActivateInfo))
+
+	sigs, err := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetConfirmedSignaturesForAddressConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, sig := range sigs {
+		t.Log(sig.Signature)
+	}
+
+}
 func TestGetStakeActivation(t *testing.T) {
 	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep", client.GetStakeActivationConfig{})
 	if err != nil {
@@ -145,12 +170,17 @@ func TestGetConfirmedBlock(t *testing.T) {
 }
 
 func TestGetTransaction(t *testing.T) {
-	info, err := c.GetTransactionV2(context.Background(), "3r61fK261bxV7uiJKr3jEiR2ysKarF23vMRexYaP5ZDYG5TtNiNw36v6GpuRVntokG7WgJzENS3iYYW9uzZSvbAU")
+	sigs, _ := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetConfirmedSignaturesForAddressConfig{})
+	for _, sig := range sigs {
+		t.Log(sig.Signature)
+	}
+
+	info, err := c.GetTransactionV2(context.Background(), "mt8UDzkJsYzjWKBeP5MGLFsmVT8fmoqsMDohcy7VXBnyqeqdjuMCA3qNUYbRzQcwCtTDXAAvfVkj9gbaid2tK6G")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Sprintf("%+v", info))
-	info2, err := c.GetConfirmedTransaction(context.Background(), "3r61fK261bxV7uiJKr3jEiR2ysKarF23vMRexYaP5ZDYG5TtNiNw36v6GpuRVntokG7WgJzENS3iYYW9uzZSvbAU")
+	info2, err := c.GetConfirmedTransaction(context.Background(), "mt8UDzkJsYzjWKBeP5MGLFsmVT8fmoqsMDohcy7VXBnyqeqdjuMCA3qNUYbRzQcwCtTDXAAvfVkj9gbaid2tK6G")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +203,7 @@ func TestGetTransaction(t *testing.T) {
 }
 
 func TestGetConfirmedTransaction(t *testing.T) {
-	info, err := c.GetConfirmedTransaction(context.Background(), "xSSTW1CZoFn3hxBWHXzd6dAh6duiczZmV1H5KgTQGEL2bxY8gZwKak8N3nsmi6NX2X21pgiwnrZQHe9sHa6dwys")
+	info, err := c.GetConfirmedTransaction(context.Background(), "2Ajzhy49soUPEt2fedKihLQgZwMqoURzeiP5CquCminXuxyZuwioWD5NjhD5K67fh7q8iypfXx3bJxCZP6B5gp7t")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -278,6 +308,7 @@ func TestGetTokenAccount(t *testing.T) {
 }
 
 func TestDecodeAccount(t *testing.T) {
+
 	pool := common.PublicKeyFromString("AycgB5EyyTmuQCrKTkymFQnn6F3PPNRyKuzv6dkuwBhc")
 	t.Log(hex.EncodeToString(pool.Bytes()))
 	sub1 := common.PublicKeyFromString("D2Qux8umtJ6VAaBuLfDPi9VyHBHhiEB1dKhPKFocKg6q")
@@ -295,7 +326,23 @@ func TestDecodeAccount(t *testing.T) {
 	txHash, _ := base58.Decode("5KZtV2942PxsbQqVircQtitEbe9CHqPMbAHswoKpKJZWNfeR6az9mUTSvgcvAE2rQu8cYjpb1uBVtFxnxk244dny")
 	t.Log(hex.EncodeToString(txHash))
 
-	blockHash, _ := base58.Decode("EfR8YmcTSXr3QDHoehtzSDT6FMaAWMhys1i6kaiCZt85")
+	blockHash, _ := base58.Decode("CNXkUVPfhfmpjtHB5XbJgZ5unkopeeRiEGzZGu6eN2Uq")
 	t.Log(hex.EncodeToString(blockHash))
 
+	bts, _ := hex.DecodeString("a9b8dfb4676247ed4f770ef5055f95d324b31e5d99273fec8150a4f4e83e7dc5")
+	t.Log(common.PublicKeyFromBytes(bts).ToBase58())
+
+}
+
+func TestGetProgramAccounts(t *testing.T) {
+	accounts, err := c.GetProgramAccounts(
+		context.Background(),
+		common.TokenProgramID.ToBase58(),
+		client.GetProgramAccountsConfig{
+			WithContext: true,
+			Encoding:    client.GetAccountInfoConfigEncodingBase64})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(accounts)
 }

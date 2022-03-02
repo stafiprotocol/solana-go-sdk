@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 )
@@ -132,9 +131,8 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 			continue
 		}
 
-		if generayRes.Error != (ErrorResponse{}) &&
-			strings.Contains(generayRes.Error.Message, "available") {
-			err = fmt.Errorf("body err: %s", generayRes.Error.Message)
+		if generayRes.Error != (ErrorResponse{}) {
+			err = fmt.Errorf("find generalResponse err, code: %d, msg: %s, use rpc: %s", generayRes.Error.Code, generayRes.Error.Message, s.Endpoint())
 			fmt.Println(err)
 			time.Sleep(waitTime)
 			retry++
