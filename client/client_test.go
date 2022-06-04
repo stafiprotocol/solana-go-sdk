@@ -20,12 +20,40 @@ import (
 
 // var c = client.NewClient([]string{"https://solana-dev-rpc.wetez.io"})
 // var c = client.NewClient([]string{client.MainnetRPCEndpoint})
-var c = client.NewClient([]string{"https://solana-rpc1.stafi.io", "https://free.rpcpool.com"})
+// var c = client.NewClient([]string{"https://solana-rpc1.stafi.io", "https://free.rpcpool.com"})
+var c = client.NewClient([]string{"https://solana.public-rpc.com"})
+// var c = client.NewClient([]string{"https://rpc.ankr.com/solana"})
 
 // var c = client.NewClient([]string{"https://solana.public-rpc.com"})
 // var c = client.NewClient([]string{"https://free.rpcpool.com"})
 
 // var c = client.NewClient([]string{"https://solana-mainnet.phantom.tech"})
+// 4天前
+// era=314 active=1044170088955   https://solana.public-rpc.com
+
+// era=314 active=1058670098955   https://rpc.ankr.com/solana
+
+// era=314 active=1058670098955   https://solana.public-rpc.com
+
+
+// 今天
+// era=314 active=1058831750514   https://rpc.ankr.com/solana
+
+func GetStakeAccountPubkey(baseAccount common.PublicKey, era uint32) (common.PublicKey, string) {
+	seed := fmt.Sprintf("stake:%d", era)
+	return common.CreateWithSeed(baseAccount, seed, common.StakeProgramID), seed
+}
+
+func TestGetSubAccount(t *testing.T) {
+	pubkey := common.PublicKeyFromString("D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
+	subPubKey, _ := GetStakeAccountPubkey(pubkey, 314)
+	info, err := c.GetStakeAccountInfo(context.Background(), subPubKey.ToBase58())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(info)
+	t.Log(info.StakeAccount.IsStakeAndNoDeactive())
+}
 
 func TestAccountInfo(t *testing.T) {
 	//user CWVd9HtYD2txbiiSwV3Ss33TGMqUVrS2F5sTs7XZQKWN
@@ -175,7 +203,7 @@ func TestGetTransaction(t *testing.T) {
 		t.Log(sig.Signature)
 	}
 
-	info, err := c.GetTransactionV2(context.Background(), "mt8UDzkJsYzjWKBeP5MGLFsmVT8fmoqsMDohcy7VXBnyqeqdjuMCA3qNUYbRzQcwCtTDXAAvfVkj9gbaid2tK6G")
+	info, err := c.GetTransactionV2(context.Background(), "5ViyGk9o8W51r9cQ2VqdtoUcSTT635y5FXRzu5hFj3sxYx39k2dk2vCzBmLFNJwqXfGDG85JHH25i7yML2Enjmxd")
 	if err != nil {
 		t.Fatal(err)
 	}

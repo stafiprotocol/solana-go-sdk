@@ -1,6 +1,11 @@
 package client
 
-import "context"
+import (
+	"context"
+	"errors"
+)
+
+var ErrTxNotFound = errors.New("TxNotFound")
 
 type GetTransactionWithLimitConfig struct {
 	// TODO custom encoding
@@ -39,5 +44,10 @@ func (s *Client) GetTransactionV2(ctx context.Context, txhash string) (GetConfir
 	if err != nil {
 		return GetConfirmedTransactionResponse{}, err
 	}
+
+	if res.Result.Slot == 0 {
+		return GetConfirmedTransactionResponse{}, ErrTxNotFound
+	}
+
 	return res.Result, nil
 }
