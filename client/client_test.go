@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/hex"
@@ -21,8 +22,14 @@ import (
 // var c = client.NewClient([]string{"https://solana-dev-rpc.wetez.io"})
 // var c = client.NewClient([]string{client.MainnetRPCEndpoint})
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io", "https://free.rpcpool.com"})
-var c = client.NewClient([]string{"https://solana.public-rpc.com"})
+
+// var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/6e0a86ceca790361d95a588efcd1af0b"})
 // var c = client.NewClient([]string{"https://rpc.ankr.com/solana"})
+// var c = client.NewClient([]string{"https://solana.public-rpc.com"})
+
+// var c = client.NewClient([]string{"https://solana-mainnet.phantom.tech"})
+
+var c = client.NewClient([]string{"https://free.rpcpool.com"})
 
 // var c = client.NewClient([]string{"https://solana.public-rpc.com"})
 // var c = client.NewClient([]string{"https://free.rpcpool.com"})
@@ -35,7 +42,6 @@ var c = client.NewClient([]string{"https://solana.public-rpc.com"})
 
 // era=314 active=1058670098955   https://solana.public-rpc.com
 
-
 // 今天
 // era=314 active=1058831750514   https://rpc.ankr.com/solana
 
@@ -46,7 +52,7 @@ func GetStakeAccountPubkey(baseAccount common.PublicKey, era uint32) (common.Pub
 
 func TestGetSubAccount(t *testing.T) {
 	pubkey := common.PublicKeyFromString("D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
-	subPubKey, _ := GetStakeAccountPubkey(pubkey, 314)
+	subPubKey, _ := GetStakeAccountPubkey(pubkey, 316)
 	info, err := c.GetStakeAccountInfo(context.Background(), subPubKey.ToBase58())
 	if err != nil {
 		t.Fatal(err)
@@ -93,15 +99,20 @@ func TestGetVersion(t *testing.T) {
 
 }
 func TestGetStakeActivation(t *testing.T) {
-	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep", client.GetStakeActivationConfig{})
+	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "G7x84EPhC635pFoBqtWYiHPs5Dc7FsNwxJ6rsdXGeTL6", client.GetStakeActivationConfig{})
 	if err != nil {
-		t.Fatal(err)
+		if strings.Contains(err.Error(), "account not found") {
+			t.Log(err)
+		} else {
+			t.Fatal(err)
+		}
 	}
+
 	t.Log(fmt.Sprintf("%+v", accountActivateInfo))
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "Eq2T5683L891HMeGcQHsFbva5fE8795SrXYDJMAQ4Cnq")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "G7x84EPhC635pFoBqtWYiHPs5Dc7FsNwxJ6rsdXGeTL6")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -231,12 +242,13 @@ func TestGetTransaction(t *testing.T) {
 }
 
 func TestGetConfirmedTransaction(t *testing.T) {
-	info, err := c.GetConfirmedTransaction(context.Background(), "2Ajzhy49soUPEt2fedKihLQgZwMqoURzeiP5CquCminXuxyZuwioWD5NjhD5K67fh7q8iypfXx3bJxCZP6B5gp7t")
-	if err != nil {
-		t.Fatal(err)
+	for {
+		info, err := c.GetConfirmedTransaction(context.Background(), "2V2tWNyWPJ9qAEK5S6wc5qX4kng2GUywterZXwgSpZSDLMrdfZDYVPxt8owV3T23fJRnDmvCiPuzbGvWSiTiuv9P")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Log(info.Meta.LogMessages)
 	}
-	t.Log(fmt.Sprintf("%+v", info))
-	t.Log(info.Meta.PreBalances[0] - info.Meta.PostBalances[0])
 }
 
 type EventTransferOut struct {
@@ -292,20 +304,95 @@ func TestParseLog(t *testing.T) {
 
 func TestGetSignaturesForAddress(t *testing.T) {
 	info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetConfirmedSignaturesForAddressConfig{
-		Limit:      1000,
-		Until:      "",
-		Commitment: "",
+		Until: "3X8B8L7ckmjPctXQESRY8T11x4iMBwJDxhz4iBpQbS1BNphR3UgZA7AXo6PKvvUQuxreTpNrdehkFkBgs5etVrsg",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	// t.Log(fmt.Sprintf("%+v", info))
 	for _, sig := range info {
-		tx, err := c.GetConfirmedTransaction(context.Background(), sig.Signature)
+		usesig := sig.Signature
+		t.Log("sig", sig)
+		tx, err := c.GetConfirmedTransaction(context.Background(), usesig)
+		if err != nil {
+			t.Fatal(fmt.Errorf("rpcClient.GetConfirmedTransaction err: %s", err.Error()))
+		}
+		//skip failed tx
+		if tx.Meta.Err != nil {
+			if err != nil {
+				t.Fatal(err)
+			}
+			continue
+		}
+		t.Log("fffff")
+		//skip zero instruction
+		if len(tx.Transaction.Message.Instructions) == 0 {
+			t.Fatal("11111")
+			continue
+		}
+		instruct := tx.Transaction.Message.Instructions[0]
+		accountKeys := tx.Transaction.Message.AccountKeys
+		programIdIndex := instruct.ProgramIDIndex
+		if len(accountKeys) <= int(programIdIndex) {
+			t.Fatal(fmt.Errorf("accounts or programIdIndex err, %v", tx))
+		}
+		//skip if it doesn't call  bridge program
+		if !strings.EqualFold(accountKeys[programIdIndex], "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo") {
+			t.Fatal("222")
+			continue
+		}
+
+		// check instruction data
+		if len(instruct.Data) == 0 {
+			t.Fatal("3333")
+			continue
+		}
+		dataBts, err := base58.Decode(instruct.Data)
 		if err != nil {
 			t.Fatal(err)
 		}
-		t.Log(tx)
+		if len(dataBts) < 8 {
+			t.Fatal("ttttt")
+			continue
+		}
+		// skip if it doesn't call transferOut func
+		if !bytes.Equal(dataBts[:8], bridgeprog.InstructionTransferOut[:]) {
+			t.Fatal("call func is not transferOut", "tx", tx)
+
+			continue
+		}
+		// check bridge account
+		if len(instruct.Accounts) == 0 {
+			t.Fatal("444")
+			continue
+		}
+		if !strings.EqualFold(accountKeys[instruct.Accounts[0]], "Ev64NXXeKdtBgJbXyuJKEw77pxaw5q4BkUb2eKeV5xDy") {
+			t.Fatal("bridge account not equal", "tx", tx)
+			continue
+		}
+		t.Log(tx.Meta.LogMessages)
+
+		for _, logMessage := range tx.Meta.LogMessages {
+			if strings.HasPrefix(logMessage, bridgeprog.EventTransferOutPrefix) {
+				t.Log("find log", "log", logMessage, "signature", usesig)
+				use_log := strings.TrimPrefix(logMessage, bridgeprog.ProgramLogPrefix)
+				logBts, err := base64.StdEncoding.DecodeString(use_log)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(logBts) <= 8 {
+					t.Fatal(fmt.Errorf("event pase length err"))
+				}
+
+				eventTransferOut := EventTransferOut{}
+				err = borsh.Deserialize(&eventTransferOut, logBts[8:])
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Log("222", eventTransferOut)
+
+			}
+
+		}
 
 	}
 	// }
