@@ -7,7 +7,7 @@ func (s *Client) GetConfirmedBlocksWithLimit(ctx context.Context, startSlot uint
 		GeneralResponse
 		Result []uint64 `json:"result"`
 	}{}
-	err := s.request(ctx, "getConfirmedBlocksWithLimit", []interface{}{startSlot, limit}, &res)
+	err := s.request(ctx, "getBlocksWithLimit", []interface{}{startSlot, limit}, &res)
 	if err != nil {
 		return nil, err
 	}

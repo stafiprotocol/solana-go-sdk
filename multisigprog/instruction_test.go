@@ -29,7 +29,9 @@ func getMultisigTxAccountPubkey(baseAccount, programID, stakeBaseAccount common.
 }
 func TestMultisigTransfer(t *testing.T) {
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -115,7 +117,9 @@ func TestMultisigTransfer(t *testing.T) {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -159,7 +163,9 @@ func TestMultisigTransfer(t *testing.T) {
 	}
 	fmt.Println("create transaction account hash ", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -382,7 +388,9 @@ func TestDecodeBlockHash(t *testing.T) {
 
 func TestMultisigStake(t *testing.T) {
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -488,7 +496,9 @@ func TestMultisigStake(t *testing.T) {
 	}
 	t.Log("send sol to multisigner txHash:", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -528,7 +538,9 @@ func TestMultisigStake(t *testing.T) {
 	}
 	t.Log("create stake account hash ", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -610,7 +622,9 @@ func TestMultisigStake(t *testing.T) {
 }
 
 func TestMultisigSplit(t *testing.T) {
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -709,7 +723,9 @@ func TestMultisigSplit(t *testing.T) {
 	t.Log("accountB", accountB.PublicKey.ToBase58())
 	t.Log("accountC", accountC.PublicKey.ToBase58())
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -740,7 +756,9 @@ func TestMultisigSplit(t *testing.T) {
 	}
 	t.Log("create transaction account hash ", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -878,7 +896,9 @@ func TestMultisigSplit(t *testing.T) {
 	}
 	t.Log("create transaction account hash ", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -940,7 +960,9 @@ func TestMultisigSplit(t *testing.T) {
 	}
 	t.Log("b Approve txHash:", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		t.Fatalf("get recent block hash error, err: %v\n", err)
 	}
@@ -1001,7 +1023,9 @@ func TestBaseToHex(t *testing.T) {
 }
 
 func TestMultisigSetThreshold(t *testing.T) {
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -1083,7 +1107,9 @@ func TestMultisigSetThreshold(t *testing.T) {
 	datas = append(datas, changeThresholdInstruct.Data)
 	instructions = append(instructions, changeThresholdInstruct)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}

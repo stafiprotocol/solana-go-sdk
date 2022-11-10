@@ -499,7 +499,9 @@ func TestAuthorizeNonceAccount(t *testing.T) {
 func ExampleCreateAccount() {
 	c := client.NewClient([]string{client.DevnetRPCEndpoint})
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -541,7 +543,9 @@ func ExampleCreateAccount() {
 func ExampleCreateAccountWithSeed() {
 	c := client.NewClient([]string{client.DevnetRPCEndpoint})
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}

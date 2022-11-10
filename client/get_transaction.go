@@ -21,34 +21,40 @@ type GetTransaction struct {
 	Transaction Transaction     `json:"transaction"`
 }
 
+type GetTransactionResponse struct {
+	Slot        uint64          `json:"slot"`
+	Meta        TransactionMeta `json:"meta"`
+	Transaction Transaction     `json:"transaction"`
+}
+
 // NEW: This method is only available in solana-core v1.7 or newer. Please use getConfirmedTransaction for solana-core v1.6
 // GetConfirmedTransaction returns transaction details for a confirmed transaction
-func (s *Client) GetTransaction(ctx context.Context, txhash string, cfg GetTransactionWithLimitConfig) (GetConfirmedTransactionResponse, error) {
+func (s *Client) GetTransaction(ctx context.Context, txhash string, cfg GetTransactionWithLimitConfig) (GetTransactionResponse, error) {
 	res := struct {
 		GeneralResponse
-		Result GetConfirmedTransactionResponse `json:"result"`
+		Result GetTransactionResponse `json:"result"`
 	}{}
 	err := s.request(ctx, "getTransaction", []interface{}{txhash, cfg}, &res)
 	if err != nil {
-		return GetConfirmedTransactionResponse{}, err
+		return GetTransactionResponse{}, err
 	}
 	return res.Result, nil
 }
 
 // NEW: This method is only available in solana-core v1.7 or newer. Please use getConfirmedTransaction for solana-core v1.6
 // GetConfirmedTransaction returns transaction details for a confirmed transaction
-func (s *Client) GetTransactionV2(ctx context.Context, txhash string) (GetConfirmedTransactionResponse, error) {
+func (s *Client) GetTransactionV2(ctx context.Context, txhash string) (GetTransactionResponse, error) {
 	res := struct {
 		GeneralResponse
-		Result GetConfirmedTransactionResponse `json:"result"`
+		Result GetTransactionResponse `json:"result"`
 	}{}
 	err := s.request(ctx, "getTransaction", []interface{}{txhash, GetTransactionWithLimitConfig{Commitment: CommitmentFinalized, MaxSupportedTransactionVersion: &DefaultMaxSupportedTransactionVersion}}, &res)
 	if err != nil {
-		return GetConfirmedTransactionResponse{}, err
+		return GetTransactionResponse{}, err
 	}
 
 	if res.Result.Slot == 0 {
-		return GetConfirmedTransactionResponse{}, ErrTxNotFound
+		return GetTransactionResponse{}, ErrTxNotFound
 	}
 
 	return res.Result, nil

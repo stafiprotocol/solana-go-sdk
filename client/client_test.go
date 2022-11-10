@@ -73,7 +73,9 @@ func TestAccountInfo(t *testing.T) {
 
 	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)
-		accountInfo, err := c.GetAccountInfo(context.Background(), "5STUJCFCFPbsagDNk6yBcpiHSPYCwgjjzbrJdWHopC9Q", client.GetAccountInfoConfig{})
+		accountInfo, err := c.GetAccountInfo(context.Background(), "a1exwPymWZ9Z3ouEsYTrjLt3g7Fsf7DyfSF9BfmGser", client.GetAccountInfoConfig{
+			Encoding: client.GetAccountInfoConfigEncodingBase58,
+		})
 		if err != nil {
 			t.Log("err", i, err)
 		} else {
@@ -91,14 +93,20 @@ func TestGetVersion(t *testing.T) {
 	}
 	t.Logf("%+v", accountActivateInfo)
 
-	sigs, err := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetConfirmedSignaturesForAddressConfig{})
+	sigs, err := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetSignaturesForAddressConfig{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, sig := range sigs {
 		t.Log(sig.Signature)
 	}
-
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentFinalized,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(res)
 }
 func TestGetStakeActivation(t *testing.T) {
 	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "G7x84EPhC635pFoBqtWYiHPs5Dc7FsNwxJ6rsdXGeTL6", client.GetStakeActivationConfig{})
@@ -185,15 +193,15 @@ func TestGetMintProposalInfo(t *testing.T) {
 }
 
 func TestGetBlock(t *testing.T) {
-	info, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
+	height, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(fmt.Printf("info%+v", info))
-}
-
-func TestGetConfirmedBlock(t *testing.T) {
-	info, err := c.GetConfirmedBlock(context.Background(), 81048933)
+	t.Log(height)
+	info, err := c.GetBlock(context.Background(), 160255408, client.GetBlockConfig{
+		Commitment:                     client.CommitmentFinalized,
+		MaxSupportedTransactionVersion: &client.DefaultMaxSupportedTransactionVersion,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +209,7 @@ func TestGetConfirmedBlock(t *testing.T) {
 
 	for _, tx := range info.Transactions {
 		for _, log := range tx.Meta.LogMessages {
-			// t.Log(log)
+			t.Log(log)
 			if strings.HasPrefix(log, bridgeprog.EventTransferOutPrefix) {
 				t.Log(strings.TrimPrefix(log, bridgeprog.ProgramLogPrefix))
 			}
@@ -211,7 +219,7 @@ func TestGetConfirmedBlock(t *testing.T) {
 }
 
 func TestGetTransaction(t *testing.T) {
-	sigs, _ := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetConfirmedSignaturesForAddressConfig{})
+	sigs, _ := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetSignaturesForAddressConfig{})
 	for _, sig := range sigs {
 		t.Log(sig.Signature)
 	}
@@ -228,11 +236,6 @@ func TestGetTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", info3)
-	info2, err := c.GetConfirmedTransaction(context.Background(), "3zuWmrhPRx9XF3wtkrw5S8KeY3ZED61uxDtGGMyKRf2a7RwFXZwmbG5GzGrYB7SVa7desMBfqfYhXjzLZkn2fZMS")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("%+v", info2)
 	blockHeight, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
 	if err != nil {
 		t.Fatal(err)
@@ -248,16 +251,6 @@ func TestGetTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(time)
-}
-
-func TestGetConfirmedTransaction(t *testing.T) {
-	for {
-		info, err := c.GetConfirmedTransaction(context.Background(), "2V2tWNyWPJ9qAEK5S6wc5qX4kng2GUywterZXwgSpZSDLMrdfZDYVPxt8owV3T23fJRnDmvCiPuzbGvWSiTiuv9P")
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Log(info.Meta.LogMessages)
-	}
 }
 
 type EventTransferOut struct {
@@ -312,16 +305,21 @@ func TestParseLog(t *testing.T) {
 // FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51
 
 func TestGetSignaturesForAddress(t *testing.T) {
-	info, err := c.GetConfirmedSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetConfirmedSignaturesForAddressConfig{
+	info, err := c.GetSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetSignaturesForAddressConfig{
 		Until: "49nN374Q3zGfZXiSEMumjnk4kZj7THMobPjwxs95VKofg8DbfMoF8Jq5HHuWUUeUiSiZy7idJV5KHYie6xyEN7uF",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log(info)
+
 	for _, sig := range info {
 		usesig := sig.Signature
 		t.Log("sig", sig)
-		tx, err := c.GetConfirmedTransaction(context.Background(), usesig)
+		tx, err := c.GetTransaction(context.Background(), usesig, client.GetTransactionWithLimitConfig{
+			Commitment:                     client.CommitmentFinalized,
+			MaxSupportedTransactionVersion: &client.DefaultMaxSupportedTransactionVersion,
+		})
 		if err != nil {
 			t.Fatal(fmt.Errorf("rpcClient.GetConfirmedTransaction err: %s", err.Error()))
 		}

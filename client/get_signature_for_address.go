@@ -23,17 +23,17 @@ type GetSignaturesForAddressConfig struct {
 // NEW: This method is only available in solana-core v1.7 or newer. Please use "getConfirmedSignaturesForAddress2" for solana-core v1.6
 // GetSignaturesForAddress Returns confirmed signatures for transactions involving an address backwards
 // in time from the provided signature or most recent confirmed block
-func (s *Client) GetSignaturesForAddress(ctx context.Context, base58Addr string, config GetConfirmedSignaturesForAddressConfig) ([]GetConfirmedSignaturesForAddress, error) {
+func (s *Client) GetSignaturesForAddress(ctx context.Context, base58Addr string, config GetSignaturesForAddressConfig) ([]GetSignaturesForAddress, error) {
 	res := struct {
 		GeneralResponse
-		Result []GetConfirmedSignaturesForAddress `json:"result"`
+		Result []GetSignaturesForAddress `json:"result"`
 	}{}
 	err := s.request(ctx, "getSignaturesForAddress", []interface{}{base58Addr, config}, &res)
 	if err != nil {
-		return []GetConfirmedSignaturesForAddress{}, err
+		return []GetSignaturesForAddress{}, err
 	}
 	if res.Error != (ErrorResponse{}) {
-		return []GetConfirmedSignaturesForAddress{}, errors.New(res.Error.Message)
+		return []GetSignaturesForAddress{}, errors.New(res.Error.Message)
 	}
 	return res.Result, nil
 }

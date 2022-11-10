@@ -23,7 +23,9 @@ var localClient = []string{"https://api.devnet.solana.com"}
 func TestCreateBridge(t *testing.T) {
 	c := client.NewClient(localClient)
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -101,7 +103,9 @@ func TestCreateBridge(t *testing.T) {
 func TestBridgeMint(t *testing.T) {
 	c := client.NewClient(localClient)
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -137,7 +141,9 @@ func TestBridgeMint(t *testing.T) {
 	fmt.Println("accountC", accountC.PublicKey.ToBase58())
 	fmt.Println("accountTo", accountTo.PublicKey.ToBase58(), hex.EncodeToString(accountTo.PrivateKey))
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -180,7 +186,9 @@ func TestBridgeMint(t *testing.T) {
 	}
 	fmt.Println("create mint proposal and to account hash ", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -253,7 +261,9 @@ func TestBridgeMint(t *testing.T) {
 func TestCreateTokenAccount(t *testing.T) {
 	c := client.NewClient(localClient)
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -274,7 +284,9 @@ func TestCreateTokenAccount(t *testing.T) {
 	fmt.Println("accountTo", accountTo.PublicKey.ToBase58(), hex.EncodeToString(accountTo.PrivateKey),
 		hex.EncodeToString(accountTo.PublicKey.Bytes()))
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -308,7 +320,9 @@ func TestCreateTokenAccount(t *testing.T) {
 	}
 	fmt.Println("create mint proposal and to account hash ", txHash)
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -317,7 +331,9 @@ func TestCreateTokenAccount(t *testing.T) {
 func TestSetResourceId(t *testing.T) {
 	c := client.NewClient(localClient)
 
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -335,7 +351,9 @@ func TestSetResourceId(t *testing.T) {
 
 	fmt.Println("admin", admin.PublicKey.ToBase58())
 
-	res, err = c.GetRecentBlockhash(context.Background())
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
@@ -386,7 +404,9 @@ func TestTransferOut(t *testing.T) {
 
 	chainId := 1
 	amount := 1
-	res, err := c.GetRecentBlockhash(context.Background())
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
