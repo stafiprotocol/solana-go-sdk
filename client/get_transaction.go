@@ -6,11 +6,13 @@ import (
 )
 
 var ErrTxNotFound = errors.New("TxNotFound")
+var DefaultMaxSupportedTransactionVersion = uint8(0)
 
 type GetTransactionWithLimitConfig struct {
 	// TODO custom encoding
 	// Encoding   string     `json:"encoding"`          // either "json", "jsonParsed", "base58" (slow), "base64", default: json
-	Commitment Commitment `json:"commitment,omitempty"` // "processed" is not supported. If parameter not provided, the default is "finalized".
+	Commitment                     Commitment `json:"commitment,omitempty"`                     // "processed" is not supported. If parameter not provided, the default is "finalized".
+	MaxSupportedTransactionVersion *uint8     `json:"maxSupportedTransactionVersion,omitempty"` // default: nil legacy only
 }
 
 type GetTransaction struct {
@@ -40,7 +42,7 @@ func (s *Client) GetTransactionV2(ctx context.Context, txhash string) (GetConfir
 		GeneralResponse
 		Result GetConfirmedTransactionResponse `json:"result"`
 	}{}
-	err := s.request(ctx, "getTransaction", []interface{}{txhash, GetTransactionWithLimitConfig{CommitmentFinalized}}, &res)
+	err := s.request(ctx, "getTransaction", []interface{}{txhash, GetTransactionWithLimitConfig{Commitment: CommitmentFinalized, MaxSupportedTransactionVersion: &DefaultMaxSupportedTransactionVersion}}, &res)
 	if err != nil {
 		return GetConfirmedTransactionResponse{}, err
 	}

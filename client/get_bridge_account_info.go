@@ -60,7 +60,7 @@ func (s *Client) GetBridgeAccountInfo(ctx context.Context, account string) (*Get
 	bridgeAccountInfo := GetBridgeAccountInfo{}
 	err = borsh.Deserialize(&bridgeAccountInfo, accountDataBts[8:])
 	if err != nil {
-		return nil, fmt.Errorf("Deserialize err: %s", err.Error())
+		return nil, fmt.Errorf("deserialize err: %s", err.Error())
 	}
 	return &bridgeAccountInfo, nil
 }

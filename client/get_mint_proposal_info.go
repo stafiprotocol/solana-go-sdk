@@ -58,7 +58,7 @@ func (s *Client) GetMintProposalInfo(ctx context.Context, account string) (*GetM
 	mintProposalInfo := GetMintProposalINfo{}
 	err = borsh.Deserialize(&mintProposalInfo, accountDataBts[8:])
 	if err != nil {
-		return nil, fmt.Errorf("Deserialize err: %s", err)
+		return nil, fmt.Errorf("deserialize err: %s", err)
 	}
 	return &mintProposalInfo, nil
 }

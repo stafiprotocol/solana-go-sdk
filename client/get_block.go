@@ -6,7 +6,8 @@ type GetBlockConfig struct {
 	// TODO custom
 	// Encoding           string     `json:"encoding"`             // default: "json", either "json", "jsonParsed", "base58" (slow), "base64"
 	// TransactionDetails string     `json:"transactionDetails"`   // default: "full", either "full", "signatures", "none"
-	Commitment Commitment `json:"commitment,omitempty"` // "processed" is not supported. If parameter not provided, the default is "finalized".
+	Commitment                     Commitment `json:"commitment,omitempty"`                     // "processed" is not supported. If parameter not provided, the default is "finalized".
+	MaxSupportedTransactionVersion *uint8     `json:"maxSupportedTransactionVersion,omitempty"` // default: nil legacy only
 }
 
 type GetBlockResponse struct {

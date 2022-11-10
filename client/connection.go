@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -103,7 +103,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 
 		// parse body
 		var body []byte
-		body, err = ioutil.ReadAll(res.Body)
+		body, err = io.ReadAll(res.Body)
 		if err != nil {
 			time.Sleep(waitTime)
 			retry++
