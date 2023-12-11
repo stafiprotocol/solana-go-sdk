@@ -19,13 +19,20 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-// var c = client.NewClient([]string{"https://solana-dev-rpc.wetez.io"})
+// var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
+
 // var c = client.NewClient([]string{client.MainnetRPCEndpoint})
-// var c = client.NewClient([]string{"https://solana-rpc1.stafi.io", "https://free.rpcpool.com"})
+// var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
 
-var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/6e0a86ceca790361d95a588efcd1af0b"})
+// var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/6e0a86ceca790361d95a588efcd1af0b"})
+var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/308aa4d20d1624a5a35e2d7fca8624f9"})
 
-// var c = client.NewClient([]string{"https://rpc.ankr.com/solana"})
+// var c = client.NewClient([]string{"https://try-rpc.mainnet.solana.blockdaemon.tech"})
+
+// var c = client.NewClient([]string{"https://rpc.ankr.com/solana_mainnet"})
+// var c = client.NewClient([]string{"https://solana-mainnet.g.alchemy.com/v2/jfqvfqIeeKDImPdksQEH-SL62h-fExgv"})
+// var c = client.NewClient([]string{"https://try.blockdaemon.com/rpc/solana"})
+// var c = client.NewClient([]string{"https://try-rpc.mainnet.solana.blockdaemon.tech"})
 
 // var c = client.NewClient([]string{"https://solana.public-rpc.com"})
 
@@ -53,13 +60,15 @@ func GetStakeAccountPubkey(baseAccount common.PublicKey, era uint32) (common.Pub
 }
 
 func TestGetSubAccount(t *testing.T) {
-	pubkey := common.PublicKeyFromString("D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
-	subPubKey, _ := GetStakeAccountPubkey(pubkey, 316)
-	info, err := c.GetStakeAccountInfo(context.Background(), subPubKey.ToBase58())
+	// pubkey := common.PublicKeyFromString("D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
+	// subPubKey, _ := GetStakeAccountPubkey(pubkey, 316)
+	info, err := c.GetStakeAccountInfo(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(info)
+	t.Log(info.StakeAccount.Info.Stake.Delegation.Stake)
+	t.Log(info.Lamports)
+
 	t.Log(info.StakeAccount.IsStakeAndNoDeactive())
 }
 
@@ -93,13 +102,13 @@ func TestGetVersion(t *testing.T) {
 	}
 	t.Logf("%+v", accountActivateInfo)
 
-	sigs, err := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetSignaturesForAddressConfig{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, sig := range sigs {
-		t.Log(sig.Signature)
-	}
+	// sigs, err := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetSignaturesForAddressConfig{})
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// for _, sig := range sigs {
+	// 	t.Log(sig.Signature)
+	// }
 	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
 		Commitment: client.CommitmentFinalized,
 	})
@@ -122,22 +131,23 @@ func TestGetStakeActivation(t *testing.T) {
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "G7x84EPhC635pFoBqtWYiHPs5Dc7FsNwxJ6rsdXGeTL6")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", accountActivateInfo)
-	accountActivateInfoBase1, err := c.GetStakeAccountInfo(context.Background(), "AgFCNmujMooFHY378Hb2cvMieXdQS5nP7xXdwWPVytig")
+	accountActivateInfoBase1, err := c.GetStakeAccountInfo(context.Background(), "4ackc4eexr1DN5eNwzQ5DnNNCAVJiCU84Ev4abUMRKau")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", accountActivateInfoBase1)
 
-	accountActivateInfo2, err := c.GetStakeActivation(context.Background(), "BfFFmn4iJE5Cmy6opWx26kEHTzrphnxiKpctdeUCNHep", client.GetStakeActivationConfig{})
+	accountActivateInfo2, err := c.GetStakeActivation(context.Background(), "4ackc4eexr1DN5eNwzQ5DnNNCAVJiCU84Ev4abUMRKau", client.GetStakeActivationConfig{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", accountActivateInfo2)
+	return
 	accountActivateInfoBase, err := c.GetStakeActivation(context.Background(), "J6L2EyHooCuRLKR17ABFmLmCD9Uq9xwDuboJUpZ5wdH7", client.GetStakeActivationConfig{})
 	if err != nil {
 		t.Fatal(err)
@@ -198,7 +208,7 @@ func TestGetBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(height)
-	info, err := c.GetBlock(context.Background(), 160255408, client.GetBlockConfig{
+	info, err := c.GetBlock(context.Background(), 169469698, client.GetBlockConfig{
 		Commitment:                     client.CommitmentFinalized,
 		MaxSupportedTransactionVersion: &client.DefaultMaxSupportedTransactionVersion,
 	})
@@ -219,38 +229,35 @@ func TestGetBlock(t *testing.T) {
 }
 
 func TestGetTransaction(t *testing.T) {
-	sigs, _ := c.GetSignaturesForAddress(context.Background(), "7hUdUTkJLwdcmt3jSEeqx4ep91sm1XwBxMDaJae6bD5D", client.GetSignaturesForAddressConfig{})
+
+	sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
 	for _, sig := range sigs {
 		t.Log(sig.Signature)
-	}
 
-	info, err := c.GetTransaction(context.Background(), "3zuWmrhPRx9XF3wtkrw5S8KeY3ZED61uxDtGGMyKRf2a7RwFXZwmbG5GzGrYB7SVa7desMBfqfYhXjzLZkn2fZMS", client.GetTransactionWithLimitConfig{Commitment: client.CommitmentFinalized})
+	}
+	info3, err := c.GetTransaction(context.Background(), "cHCEwJgTrx9DyQcSYMfvmj3sKmwALjARETknNA7g88KeMJ3tvzey888Np1v4AvcEY7szQmzvom8hJe5XQcu587q", client.GetTransactionWithLimitConfig{
+		Commitment:                     client.CommitmentFinalized,
+		MaxSupportedTransactionVersion: &client.DefaultMaxSupportedTransactionVersion})
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%+v", info)
-	t.Logf("%+v", info.Slot)
-
-	info3, err := c.GetTransactionV2(context.Background(), "3zuWmrhPRx9XF3wtkrw5S8KeY3ZED61uxDtGGMyKRf2a7RwFXZwmbG5GzGrYB7SVa7desMBfqfYhXjzLZkn2fZMS")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("%+v", info3)
-	blockHeight, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(blockHeight)
-	slot, err := c.GetSlot(context.Background(), client.GetSlotConfig{client.CommitmentFinalized})
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(slot)
-	time, err := c.GetBlockTime(context.Background(), slot)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(time)
+	t.Logf("%+v", info3.Meta)
+	t.Log(info3.Meta.Err)
+	// blockHeight, err := c.GetBlockHeight(context.Background(), client.GetBlockHeightConfig{client.CommitmentFinalized})
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// t.Log(blockHeight)
+	// slot, err := c.GetSlot(context.Background(), client.GetSlotConfig{client.CommitmentFinalized})
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// t.Log(slot)
+	// time, err := c.GetBlockTime(context.Background(), slot)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// t.Log(time)
 }
 
 type EventTransferOut struct {
@@ -306,7 +313,7 @@ func TestParseLog(t *testing.T) {
 
 func TestGetSignaturesForAddress(t *testing.T) {
 	info, err := c.GetSignaturesForAddress(context.Background(), "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo", client.GetSignaturesForAddressConfig{
-		Until: "49nN374Q3zGfZXiSEMumjnk4kZj7THMobPjwxs95VKofg8DbfMoF8Jq5HHuWUUeUiSiZy7idJV5KHYie6xyEN7uF",
+		Until: "2xMo6H3wAerJgBKNPw2c1Mo4n6bbrgLMVozDY9S2mVus2L1ZAks4ebPGHAvxh6oTX9e86TBGmCVNmpthAkT69KLU",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -336,69 +343,71 @@ func TestGetSignaturesForAddress(t *testing.T) {
 			t.Fatal("11111")
 			continue
 		}
-		instruct := tx.Transaction.Message.Instructions[0]
-		accountKeys := tx.Transaction.Message.AccountKeys
-		programIdIndex := instruct.ProgramIDIndex
-		if len(accountKeys) <= int(programIdIndex) {
-			t.Fatal(fmt.Errorf("accounts or programIdIndex err, %v", tx))
-		}
-		//skip if it doesn't call  bridge program
-		if !strings.EqualFold(accountKeys[programIdIndex], "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo") {
-			t.Fatal("222")
-			continue
-		}
+		for _, instruct := range tx.Transaction.Message.Instructions {
 
-		// check instruction data
-		if len(instruct.Data) == 0 {
-			t.Fatal("3333")
-			continue
-		}
-		dataBts, err := base58.Decode(instruct.Data)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(dataBts) < 8 {
-			t.Fatal("ttttt")
-			continue
-		}
-		// skip if it doesn't call transferOut func
-		if !bytes.Equal(dataBts[:8], bridgeprog.InstructionTransferOut[:]) {
-			t.Fatal("call func is not transferOut", "tx", tx)
-
-			continue
-		}
-		// check bridge account
-		if len(instruct.Accounts) == 0 {
-			t.Fatal("444")
-			continue
-		}
-		if !strings.EqualFold(accountKeys[instruct.Accounts[0]], "Ev64NXXeKdtBgJbXyuJKEw77pxaw5q4BkUb2eKeV5xDy") {
-			t.Fatal("bridge account not equal", "tx", tx)
-			continue
-		}
-		t.Log(tx.Meta.LogMessages)
-
-		for _, logMessage := range tx.Meta.LogMessages {
-			if strings.HasPrefix(logMessage, bridgeprog.EventTransferOutPrefix) {
-				t.Log("find log", "log", logMessage, "signature", usesig)
-				use_log := strings.TrimPrefix(logMessage, bridgeprog.ProgramLogPrefix)
-				logBts, err := base64.StdEncoding.DecodeString(use_log)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if len(logBts) <= 8 {
-					t.Fatal(fmt.Errorf("event pase length err"))
-				}
-
-				eventTransferOut := EventTransferOut{}
-				err = borsh.Deserialize(&eventTransferOut, logBts[8:])
-				if err != nil {
-					t.Fatal(err)
-				}
-				t.Logf("555 %+v", eventTransferOut)
-
+			accountKeys := tx.Transaction.Message.AccountKeys
+			programIdIndex := instruct.ProgramIDIndex
+			if len(accountKeys) <= int(programIdIndex) {
+				t.Fatal(fmt.Errorf("accounts or programIdIndex err, %v", tx))
+			}
+			//skip if it doesn't call  bridge program
+			if !strings.EqualFold(accountKeys[programIdIndex], "H3mPx8i41Zn4dLC6ZQRBzNRe1cqYdbcDP1WpojnaiAVo") {
+				t.Log("222")
+				continue
 			}
 
+			// check instruction data
+			if len(instruct.Data) == 0 {
+				t.Log("3333")
+				continue
+			}
+			dataBts, err := base58.Decode(instruct.Data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(dataBts) < 8 {
+				t.Log("ttttt")
+				continue
+			}
+			// skip if it doesn't call transferOut func
+			if !bytes.Equal(dataBts[:8], bridgeprog.InstructionTransferOut[:]) {
+				t.Fatal("call func is not transferOut", "tx", tx)
+
+				continue
+			}
+			// check bridge account
+			if len(instruct.Accounts) == 0 {
+				t.Fatal("444")
+				continue
+			}
+			if !strings.EqualFold(accountKeys[instruct.Accounts[0]], "Ev64NXXeKdtBgJbXyuJKEw77pxaw5q4BkUb2eKeV5xDy") {
+				t.Fatal("bridge account not equal", "tx", tx)
+				continue
+			}
+			t.Log(tx.Meta.LogMessages)
+
+			for _, logMessage := range tx.Meta.LogMessages {
+				if strings.HasPrefix(logMessage, bridgeprog.EventTransferOutPrefix) {
+					t.Log("find log", "log", logMessage, "signature", usesig)
+					use_log := strings.TrimPrefix(logMessage, bridgeprog.ProgramLogPrefix)
+					logBts, err := base64.StdEncoding.DecodeString(use_log)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if len(logBts) <= 8 {
+						t.Fatal(fmt.Errorf("event pase length err"))
+					}
+
+					eventTransferOut := EventTransferOut{}
+					err = borsh.Deserialize(&eventTransferOut, logBts[8:])
+					if err != nil {
+						t.Fatal(err)
+					}
+					t.Logf("555 %+v", eventTransferOut)
+
+				}
+
+			}
 		}
 
 	}
@@ -430,6 +439,13 @@ func TestGetTokenAccount(t *testing.T) {
 }
 
 func TestDecodeAccount(t *testing.T) {
+
+	bhbts, err := hex.DecodeString("36ca6a5226f2ae7a258a77e364723d3efe1c873b2db327fff3a243baa681719f")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(common.PublicKeyFromBytes(bhbts).ToBase58())
 
 	pool := common.PublicKeyFromString("AycgB5EyyTmuQCrKTkymFQnn6F3PPNRyKuzv6dkuwBhc")
 	t.Log(hex.EncodeToString(pool.Bytes()))
