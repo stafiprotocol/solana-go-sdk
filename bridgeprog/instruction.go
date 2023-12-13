@@ -22,6 +22,7 @@ var (
 	InstructionSetFeeReceiver      Instruction
 	InstructionSetFeeAmount        Instruction
 	InstructionSetSupportChainIds  Instruction
+	InstructionSetMintAuthority    Instruction
 
 	EventTransferOut       Event
 	ProgramLogPrefix       = "Program log: "
@@ -51,6 +52,8 @@ func init() {
 	copy(InstructionSetFeeAmount[:], setFeeAmountHash[:8])
 	setSupportChainIdsHash := sha256.Sum256([]byte("global:set_support_chain_ids"))
 	copy(InstructionSetSupportChainIds[:], setSupportChainIdsHash[:8])
+	setMintAuthorityHash := sha256.Sum256([]byte("global:set_mint_authority"))
+	copy(InstructionSetMintAuthority[:], setMintAuthorityHash[:8])
 }
 
 func CreateBridge(
@@ -274,6 +277,40 @@ func SetFeeAmount(
 	accounts := []types.AccountMeta{
 		{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
 		{PubKey: adminAccount, IsSigner: true, IsWritable: false},
+	}
+
+	return types.Instruction{
+		ProgramID: bridgeProgramID,
+		Accounts:  accounts,
+		Data:      data,
+	}
+}
+
+func SetMintAuthority(
+	bridgeProgramID,
+	bridgeAccount,
+	adminAccount,
+	bridgeSigner,
+	mint,
+	newMintAuthority common.PublicKey,
+) types.Instruction {
+	data, err := common.SerializeData(struct {
+		Instruction   Instruction
+		MintAuthority common.PublicKey
+	}{
+		Instruction:   InstructionSetMintAuthority,
+		MintAuthority: newMintAuthority,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	accounts := []types.AccountMeta{
+		{PubKey: bridgeAccount, IsSigner: false, IsWritable: false},
+		{PubKey: adminAccount, IsSigner: true, IsWritable: false},
+		{PubKey: bridgeSigner, IsSigner: false, IsWritable: false},
+		{PubKey: mint, IsSigner: false, IsWritable: true},
+		{PubKey: common.TokenProgramID, IsSigner: false, IsWritable: true},
 	}
 
 	return types.Instruction{

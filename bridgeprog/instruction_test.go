@@ -16,9 +16,10 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var bridgeProgramIdDev = common.PublicKeyFromString("FRzXkJ4p1knQkFdBCtLCt8Zuvykr7Wd5yKTrryQV3K51")
-var mintAccountPubkey = common.PublicKeyFromString("ApyYYc8URTrmvzTko5ffYuyJCZtVnULWq5qxM2tm1mYj")
+var bridgeProgramIdDev = common.PublicKeyFromString("GF5hXVTvkErn2LTL5myFVbgqPXHnZYj2CkVGU6ZTEtyK")
 var localClient = []string{"https://api.devnet.solana.com"}
+var id = types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
+var id2 = types.AccountFromPrivateKeyBytes([]byte{12, 118, 31, 12, 142, 132, 83, 25, 46, 59, 254, 109, 3, 206, 1, 153, 178, 123, 50, 146, 96, 83, 237, 214, 94, 147, 87, 127, 42, 39, 97, 56, 62, 33, 157, 80, 212, 54, 114, 143, 17, 90, 115, 208, 188, 27, 52, 104, 139, 106, 39, 235, 193, 194, 9, 133, 204, 227, 135, 55, 224, 76, 179, 74})
 
 func TestCreateBridge(t *testing.T) {
 	c := client.NewClient(localClient)
@@ -29,19 +30,17 @@ func TestCreateBridge(t *testing.T) {
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
-	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
 
-	_, err = c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
-	if err != nil {
-		fmt.Println(err)
-	}
+	var mintAccountPubkey = common.PublicKeyFromString("F6KFk1jzBNQis7HdVdUyFLYQ6L3dVZoYL4VwwgQvnjBE") // rsol_mint.json
+
+	feePayer := id
 
 	bridgeAccount := types.NewAccount()
 	accountA := types.NewAccount()
 	accountB := types.NewAccount()
 	accountC := types.NewAccount()
 	feeReceiver := types.NewAccount()
-	accountAdmin := types.NewAccount()
+	accountAdmin := id2
 	multiSigner, nonce, err := common.FindProgramAddress([][]byte{bridgeAccount.PublicKey.Bytes()}, bridgeProgramIdDev)
 	if err != nil {
 		fmt.Println(err)
@@ -83,15 +82,12 @@ func TestCreateBridge(t *testing.T) {
 	if err != nil {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
-	seed := "8111"
-	mintProposalPubkey := common.CreateWithSeed(feePayer.PublicKey, seed, bridgeProgramIdDev)
 
 	fmt.Println("createBridge txHash:", txHash)
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
 	fmt.Println("bridge account:", bridgeAccount.PublicKey.ToBase58())
 	fmt.Println("bridge pda account nonce", nonce)
 	fmt.Println("pda address:", multiSigner.ToBase58())
-	fmt.Println("proposal account:", mintProposalPubkey.ToBase58())
 	fmt.Println("accountA", accountA.PublicKey.ToBase58(), hex.EncodeToString(accountA.PrivateKey))
 	fmt.Println("accountB", accountB.PublicKey.ToBase58(), hex.EncodeToString(accountB.PrivateKey))
 	fmt.Println("accountC", accountC.PublicKey.ToBase58(), hex.EncodeToString(accountC.PrivateKey))
@@ -116,6 +112,7 @@ func TestBridgeMint(t *testing.T) {
 		fmt.Println(err)
 	}
 
+	var mintAccountPubkey = common.PublicKeyFromString("ApyYYc8URTrmvzTko5ffYuyJCZtVnULWq5qxM2tm1mYj")
 	accountABytes, _ := hex.DecodeString("71bfe36bed6af18e074a703168beb568fe2032a03c6e424ab7193b392cb5a07b2fb30c0b530a85f2653c4137ba50ca993588d729676a6955a33ed43263a961e3")
 	accountBBytes, _ := hex.DecodeString("d7a82e87057e2a73e573e3c4b9d6699f388c06733b787fac893050c5b5a7bdb86d6a21fd14eecabcb8b5f6d0bc3d33854f6f6dbd3be08fb9ef64ea370e6ac830")
 	accountCBytes, _ := hex.DecodeString("94e5bacc1bb1afab057900f103ed6cd05567556f196305b15d732e6ae4e099aeebee5c0fcb5f30f2c86fc4736dd3b39b5682947333f852c40c491953f2b0767d")
@@ -267,6 +264,7 @@ func TestCreateTokenAccount(t *testing.T) {
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
+	var mintAccountPubkey = common.PublicKeyFromString("ApyYYc8URTrmvzTko5ffYuyJCZtVnULWq5qxM2tm1mYj")
 	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
 
 	_, err = c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
@@ -383,9 +381,58 @@ func TestSetResourceId(t *testing.T) {
 	fmt.Println("set resourceId tx  hash ", txHash)
 }
 
-func TestTransferOut(t *testing.T) {
+func TestSetMintAuthorities(t *testing.T) {
 	c := client.NewClient(localClient)
 
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+	feePayer := id
+	bridgeAccountPubkey := common.PublicKeyFromString("51pE2sAyDAkmPxv1FLFXQsZTyuPMkx23XfZ44UdkJM3T")
+	admin := id2
+	bridgeSigner := common.PublicKeyFromString("9HaoxMY56uWzyrv7LXv8ToHYxXx7Kzubvc6vU4uipa9F")
+	newMintAuthority := common.PublicKeyFromString("8fXWpVJfVyeh6RnS3p1FtNV6iEPxqddgw1Xa2BHyLxvV")
+	var mintAccountPubkey = common.PublicKeyFromString("F6KFk1jzBNQis7HdVdUyFLYQ6L3dVZoYL4VwwgQvnjBE") // rsol_mint.json
+
+	res, err = c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			bridgeprog.SetMintAuthority(
+				bridgeProgramIdDev,
+				bridgeAccountPubkey,
+				admin.PublicKey,
+				bridgeSigner,
+				mintAccountPubkey,
+				newMintAuthority,
+			),
+		},
+		Signers:         []types.Account{feePayer, admin},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+
+	if err != nil {
+		fmt.Printf("generate set resource tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+	fmt.Println("set mint authority tx  hash ", txHash)
+}
+
+func TestTransferOut(t *testing.T) {
+	c := client.NewClient(localClient)
+	var mintAccountPubkey = common.PublicKeyFromString("ApyYYc8URTrmvzTko5ffYuyJCZtVnULWq5qxM2tm1mYj")
 	feePayer := types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
 	_, err := c.RequestAirdrop(context.Background(), feePayer.PublicKey.ToBase58(), 10e9)
 	if err != nil {

@@ -13,7 +13,6 @@ import (
 )
 
 var minterProgramIdDev = common.PublicKeyFromString("HDb577JnkPHLFpfbTg1ncX9jmVHGjzX6S9bgZvNnXjVj")
-var rsolMint = common.PublicKeyFromString("Fa8Xy1hHUQejskxk4XEbbnPfAg2igs53tayBVdN3nXXo")
 var localClient = []string{"https://api.devnet.solana.com"}
 
 var id = types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
@@ -30,6 +29,7 @@ func TestInitialize(t *testing.T) {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
 
+	rSolMint := common.PublicKeyFromString("F6KFk1jzBNQis7HdVdUyFLYQ6L3dVZoYL4VwwgQvnjBE") // rsol_mint.json
 	feePayer := id
 	admin := admin
 	extMintAuthority := id2
@@ -37,6 +37,11 @@ func TestInitialize(t *testing.T) {
 	minterManagerAccount := types.NewAccount()
 
 	extMintAthorities := []common.PublicKey{extMintAuthority.PublicKey}
+
+	mintAuthority, _, err := common.FindProgramAddress([][]byte{minterManagerAccount.PublicKey.Bytes(), []byte("mint")}, minterProgramIdDev)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -50,12 +55,13 @@ func TestInitialize(t *testing.T) {
 			minterprog.Initialize(
 				minterProgramIdDev,
 				minterManagerAccount.PublicKey,
-				rsolMint,
+				mintAuthority,
+				rSolMint,
 				admin.PublicKey,
 				extMintAthorities,
 			),
 		},
-		Signers:         []types.Account{feePayer, minterManagerAccount},
+		Signers:         []types.Account{feePayer, minterManagerAccount, admin},
 		FeePayer:        feePayer.PublicKey,
 		RecentBlockHash: res.Blockhash,
 	})
@@ -70,7 +76,14 @@ func TestInitialize(t *testing.T) {
 	fmt.Println("createMinterManager txHash:", txHash)
 	fmt.Println("minterManager account:", minterManagerAccount.PublicKey.ToBase58())
 	fmt.Println("admin", admin.PublicKey.ToBase58())
+	fmt.Println("mintAuthority", mintAuthority.ToBase58())
 	fmt.Println("feePayer:", feePayer.PublicKey.ToBase58())
+
+	// 	createMinterManager txHash: 3Jrecuz6vfFfg4B9DqKdpFR9T7t4zUwfe5ZYd9Eofcy8ckcrTXvb87C2X1AYMg1Y5bCj2jaDyybFa3uyHTZZi2TR
+	// minterManager account: 55GGz9kCyU8guxJBTtGSscWbM6WS9RsZ4nDmKZU19ubF
+	// admin Hz81pzkXTqhaZ6v4M6ERCZU4x3aaXrqq2rCafLDwNE1w
+	// mintAuthority 8fXWpVJfVyeh6RnS3p1FtNV6iEPxqddgw1Xa2BHyLxvV
+	// feePayer: 8pFiM2vyEzyYL7oJqaK2CgHPnARFdziM753rDHWsnhU1
 
 }
 
@@ -84,13 +97,14 @@ func TestMintToken(t *testing.T) {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
 
+	rSolMint := common.PublicKeyFromString("F6KFk1jzBNQis7HdVdUyFLYQ6L3dVZoYL4VwwgQvnjBE") // rsol_mint.json
 	feePayer := id
 	extMintAuthority := id2
 
-	minterManagerAccount := common.PublicKeyFromString("7ZSPwtsvFHcMvSGXtRjtHSR2AkQaix1g82gBm5Y5R3VQ")
-	mintToAccount := common.PublicKeyFromString("AN22h55iQBwiivXiKNZuGEA28PzHAA1JdgpnD3rrquxo")
+	minterManagerAccount := common.PublicKeyFromString("55GGz9kCyU8guxJBTtGSscWbM6WS9RsZ4nDmKZU19ubF")
+	mintToAccount := common.PublicKeyFromString("DGk5qWr3ErhYdSrB64tUsy5sFyyQ8Gf9bhPhYsVk62DB") //random
 
-	mintAuthority := common.PublicKeyFromString("GBm6iLyc85BA7RTguvv21chvBk1svN1BCqMfWB57fARe")
+	mintAuthority := common.PublicKeyFromString("8fXWpVJfVyeh6RnS3p1FtNV6iEPxqddgw1Xa2BHyLxvV")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -98,7 +112,7 @@ func TestMintToken(t *testing.T) {
 			minterprog.MintToken(
 				minterProgramIdDev,
 				minterManagerAccount,
-				rsolMint,
+				rSolMint,
 				mintToAccount,
 				mintAuthority,
 				extMintAuthority.PublicKey,
@@ -134,10 +148,10 @@ func TestSetExtMintAuthorities(t *testing.T) {
 	feePayer := id
 	admin := admin
 
-	minterManagerAccount := common.PublicKeyFromString("7ZSPwtsvFHcMvSGXtRjtHSR2AkQaix1g82gBm5Y5R3VQ")
+	minterManagerAccount := common.PublicKeyFromString("55GGz9kCyU8guxJBTtGSscWbM6WS9RsZ4nDmKZU19ubF")
 
 	extMintAuthority := id2
-	extMintAuthorityStakePool := common.PublicKeyFromString("55Z1PVDQuC9zXVLN6wyWBRGZ1qggwyXaKYMge6xNZBvt")
+	extMintAuthorityStakePool := common.PublicKeyFromString("33aoSpaFKDuKqh35a1N5eGopFH4nr51DENxh9bkzvnKe")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{

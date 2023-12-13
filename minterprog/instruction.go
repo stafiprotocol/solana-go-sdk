@@ -34,6 +34,7 @@ func init() {
 func Initialize(
 	minterProgramID,
 	mintManager,
+	mintAuthority,
 	rsolMint,
 	admin common.PublicKey,
 	extMintAthorities []common.PublicKey,
@@ -54,6 +55,7 @@ func Initialize(
 		ProgramID: minterProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: mintManager, IsSigner: false, IsWritable: true},
+			{PubKey: mintAuthority, IsSigner: false, IsWritable: false},
 			{PubKey: rsolMint, IsSigner: false, IsWritable: false},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
 			{PubKey: common.SysVarRentPubkey, IsSigner: false, IsWritable: false},
