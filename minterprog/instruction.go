@@ -12,8 +12,9 @@ type Instruction [8]byte
 type Event [8]byte
 
 var (
-	InstructionInitialize Instruction
-	InstructionMintToken  Instruction
+	InstructionInitialize            Instruction
+	InstructionMintToken             Instruction
+	InstructionSetExtMintAuthorities Instruction
 
 	MinterManagerAccountLengthDefault = uint64(2000)
 )
@@ -24,6 +25,9 @@ func init() {
 
 	mintTokenHash := sha256.Sum256([]byte("global:mint_token"))
 	copy(InstructionMintToken[:], mintTokenHash[:8])
+
+	setExtMintAuthoritiesHash := sha256.Sum256([]byte("global:set_ext_mint_authorities"))
+	copy(InstructionSetExtMintAuthorities[:], setExtMintAuthoritiesHash[:8])
 
 }
 
@@ -86,6 +90,35 @@ func MintToken(
 		{PubKey: mintAuthority, IsSigner: false, IsWritable: false},
 		{PubKey: extMintAuthority, IsSigner: true, IsWritable: false},
 		{PubKey: tokenProgram, IsSigner: false, IsWritable: false},
+	}
+
+	return types.Instruction{
+		ProgramID: minterProgramID,
+		Accounts:  accounts,
+		Data:      data,
+	}
+}
+
+func SetExtMintAuthorities(
+	minterProgramID,
+	mintManager,
+	admin common.PublicKey,
+	extMintAuthorities []common.PublicKey) types.Instruction {
+
+	data, err := common.SerializeData(struct {
+		Instruction        Instruction
+		ExtMintAuthorities []common.PublicKey
+	}{
+		Instruction:        InstructionSetExtMintAuthorities,
+		ExtMintAuthorities: extMintAuthorities,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	accounts := []types.AccountMeta{
+		{PubKey: mintManager, IsSigner: false, IsWritable: true},
+		{PubKey: admin, IsSigner: true, IsWritable: false},
 	}
 
 	return types.Instruction{
