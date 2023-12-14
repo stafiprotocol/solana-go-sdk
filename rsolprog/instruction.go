@@ -17,8 +17,9 @@ var (
 	InstructionInitialize          Instruction
 	InstructionMigrateStakeAccount Instruction
 
-	InstructionStake   Instruction
-	InstructionUnstake Instruction
+	InstructionStake    Instruction
+	InstructionUnstake  Instruction
+	InstructionWithdraw Instruction
 
 	InstructionSetActive     Instruction
 	InstructionSetRsolSupply Instruction
@@ -28,6 +29,7 @@ var (
 	InstructionEraUnbond       Instruction
 	InstructionEraUpdateActive Instruction
 	InstructionEraUpdateRate   Instruction
+	InstructionEraMerge        Instruction
 )
 
 func init() {
@@ -41,6 +43,8 @@ func init() {
 	copy(InstructionStake[:], stakeHash[:8])
 	unstakeHash := sha256.Sum256([]byte("global:unstake"))
 	copy(InstructionUnstake[:], unstakeHash[:8])
+	withdrawHash := sha256.Sum256([]byte("global:withdraw"))
+	copy(InstructionWithdraw[:], withdrawHash[:8])
 
 	setActiveHash := sha256.Sum256([]byte("global:set_active"))
 	copy(InstructionSetActive[:], setActiveHash[:8])
@@ -57,6 +61,8 @@ func init() {
 	copy(InstructionEraUpdateActive[:], eraUpdateActiveHash[:8])
 	eraUpdateRateHash := sha256.Sum256([]byte("global:era_update_rate"))
 	copy(InstructionEraUpdateRate[:], eraUpdateRateHash[:8])
+	eraMergeHash := sha256.Sum256([]byte("global:era_merge"))
+	copy(InstructionEraMerge[:], eraMergeHash[:8])
 
 }
 
@@ -276,6 +282,37 @@ func Unstake(
 	}
 }
 
+func Withdraw(
+	rSolProgramID,
+	stakeManager,
+	stakePool,
+	unstakeAccount,
+	recipient common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+	}{
+		Instruction: InstructionWithdraw,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: stakePool, IsSigner: false, IsWritable: true},
+			{PubKey: unstakeAccount, IsSigner: false, IsWritable: true},
+			{PubKey: recipient, IsSigner: false, IsWritable: true},
+			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.SystemProgramID, IsSigner: false, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
 func EraNew(
 	rSolProgramID,
 	stakeManager common.PublicKey,
@@ -430,6 +467,38 @@ func EraUpdateRate(
 			{PubKey: mintAuthority, IsSigner: false, IsWritable: false},
 			{PubKey: minterProgramID, IsSigner: false, IsWritable: false},
 			{PubKey: common.TokenProgramID, IsSigner: false, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func EraMerge(
+	rSolProgramID,
+	stakeManager,
+	srcStakeAccount,
+	dstStakeAccount,
+	stakePool common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+	}{
+		Instruction: InstructionEraMerge,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: srcStakeAccount, IsSigner: false, IsWritable: true},
+			{PubKey: dstStakeAccount, IsSigner: false, IsWritable: true},
+			{PubKey: stakePool, IsSigner: false, IsWritable: false},
+			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.SysVarStakeHistoryPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
 		},
 		Data: data,
 	}

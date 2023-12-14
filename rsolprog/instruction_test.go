@@ -275,6 +275,50 @@ func TestUnstake(t *testing.T) {
 
 }
 
+func TestWithdraw(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	feePayer := id
+	recipient := staker
+
+	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
+	stakePool := common.PublicKeyFromString("33aoSpaFKDuKqh35a1N5eGopFH4nr51DENxh9bkzvnKe")
+	unstakeAccount := common.PublicKeyFromString("Cjxm5bHvrxTcnwgwL2uLSpJDTRzaPkQkSnvSjvyfw71i")
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+
+		Instructions: []types.Instruction{
+			rsolprog.Withdraw(
+				rSolProgramIdDev,
+				stakeManager,
+				stakePool,
+				unstakeAccount,
+				recipient.PublicKey,
+			),
+		},
+		Signers:         []types.Account{feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	fmt.Println("withdraw txHash:", txHash)
+
+}
+
 func TestSetActive(t *testing.T) {
 	c := client.NewClient(localClient)
 
@@ -569,6 +613,51 @@ func TestEraUpdateRate(t *testing.T) {
 
 	fmt.Println("era update rate txHash:", txHash)
 
+}
+
+func TestEraMerge(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	feePayer := id
+
+	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
+	srcStakeAccount := common.PublicKeyFromString("BbHMFJozZ8SDRgMTTHDdbDNsKuBSNLaBV4o16T4mAUKz")
+	dstStakeAccount := common.PublicKeyFromString("5jTc9Q44AF9avDtKGcQKNYNUZbNYtiigBygoj4bLwmdh")
+	stakePool, _, err := common.FindProgramAddress([][]byte{stakeManager.Bytes(), []byte("pool_seed")}, rSolProgramIdDev)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			rsolprog.EraMerge(
+				rSolProgramIdDev,
+				stakeManager,
+				srcStakeAccount,
+				dstStakeAccount,
+				stakePool,
+			),
+		},
+		Signers:         []types.Account{feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	fmt.Println("era merge txHash:", txHash)
 }
 
 func TestFindProgramAddress(t *testing.T) {
