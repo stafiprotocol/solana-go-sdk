@@ -17,6 +17,7 @@ import (
 )
 
 var bridgeProgramIdDev = common.PublicKeyFromString("GF5hXVTvkErn2LTL5myFVbgqPXHnZYj2CkVGU6ZTEtyK")
+var minterProgramIdDev = common.PublicKeyFromString("HDb577JnkPHLFpfbTg1ncX9jmVHGjzX6S9bgZvNnXjVj")
 var localClient = []string{"https://api.devnet.solana.com"}
 var id = types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
 var id2 = types.AccountFromPrivateKeyBytes([]byte{12, 118, 31, 12, 142, 132, 83, 25, 46, 59, 254, 109, 3, 206, 1, 153, 178, 123, 50, 146, 96, 83, 237, 214, 94, 147, 87, 127, 42, 39, 97, 56, 62, 33, 157, 80, 212, 54, 114, 143, 17, 90, 115, 208, 188, 27, 52, 104, 139, 106, 39, 235, 193, 194, 9, 133, 204, 227, 135, 55, 224, 76, 179, 74})
@@ -218,7 +219,8 @@ func TestBridgeMint(t *testing.T) {
 		fmt.Printf("send tx error, err: %v\n", err)
 	}
 	fmt.Println("init mint proposal account txHash:", txHash)
-
+	minterManagerAccount := common.PublicKeyFromString("55GGz9kCyU8guxJBTtGSscWbM6WS9RsZ4nDmKZU19ubF")
+	mintAuthority := common.PublicKeyFromString("8fXWpVJfVyeh6RnS3p1FtNV6iEPxqddgw1Xa2BHyLxvV")
 	approve := func(approver types.Account) {
 		rawTx, err = types.CreateRawTransaction(types.CreateRawTransactionParam{
 			Instructions: []types.Instruction{
@@ -230,7 +232,9 @@ func TestBridgeMint(t *testing.T) {
 					approver.PublicKey,
 					mintAccountPubkey,
 					accountToPubKey,
-					common.TokenProgramID,
+					minterManagerAccount,
+					mintAuthority,
+					minterProgramIdDev,
 				),
 			},
 			Signers:         []types.Account{approver, feePayer},

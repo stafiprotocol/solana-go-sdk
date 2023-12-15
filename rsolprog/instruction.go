@@ -13,6 +13,7 @@ type Event [8]byte
 
 var StakeManagerAccountLengthDefault = uint64(2000000)
 var UnstakeAccountLengthDefault = uint64(100)
+
 var (
 	InstructionInitialize          Instruction
 	InstructionMigrateStakeAccount Instruction
@@ -20,9 +21,6 @@ var (
 	InstructionStake    Instruction
 	InstructionUnstake  Instruction
 	InstructionWithdraw Instruction
-
-	InstructionSetActive     Instruction
-	InstructionSetRsolSupply Instruction
 
 	InstructionEraNew          Instruction
 	InstructionEraBond         Instruction
@@ -45,11 +43,6 @@ func init() {
 	copy(InstructionUnstake[:], unstakeHash[:8])
 	withdrawHash := sha256.Sum256([]byte("global:withdraw"))
 	copy(InstructionWithdraw[:], withdrawHash[:8])
-
-	setActiveHash := sha256.Sum256([]byte("global:set_active"))
-	copy(InstructionSetActive[:], setActiveHash[:8])
-	setRsolSupplyHash := sha256.Sum256([]byte("global:set_rsol_supply"))
-	copy(InstructionSetRsolSupply[:], setRsolSupplyHash[:8])
 
 	eraNewHash := sha256.Sum256([]byte("global:era_new"))
 	copy(InstructionEraNew[:], eraNewHash[:8])
@@ -140,62 +133,6 @@ func MigrateStakeAccount(
 			{PubKey: stakeAuthority, IsSigner: true, IsWritable: false},
 			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
 			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
-		},
-		Data: data,
-	}
-}
-
-func SetActive(
-	rSolProgramID,
-	stakeManager,
-	admin common.PublicKey,
-	active uint64,
-) types.Instruction {
-
-	data, err := borsh.Serialize(struct {
-		Instruction Instruction
-		Active      uint64
-	}{
-		Instruction: InstructionSetActive,
-		Active:      active,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return types.Instruction{
-		ProgramID: rSolProgramID,
-		Accounts: []types.AccountMeta{
-			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
-			{PubKey: admin, IsSigner: true, IsWritable: false},
-		},
-		Data: data,
-	}
-}
-
-func SetRsolSupply(
-	rSolProgramID,
-	stakeManager,
-	admin common.PublicKey,
-	total uint64,
-) types.Instruction {
-
-	data, err := borsh.Serialize(struct {
-		Instruction Instruction
-		Total       uint64
-	}{
-		Instruction: InstructionSetRsolSupply,
-		Total:       total,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return types.Instruction{
-		ProgramID: rSolProgramID,
-		Accounts: []types.AccountMeta{
-			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
-			{PubKey: admin, IsSigner: true, IsWritable: false},
 		},
 		Data: data,
 	}

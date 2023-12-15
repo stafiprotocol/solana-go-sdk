@@ -373,7 +373,9 @@ func ApproveMintProposal(
 	approverAccount,
 	mintAccount,
 	toAccount,
-	tokenProgram common.PublicKey,
+	mintManager,
+	mintAuthority,
+	minterProgramId common.PublicKey,
 ) types.Instruction {
 
 	data, err := common.SerializeData(struct {
@@ -392,7 +394,10 @@ func ApproveMintProposal(
 		{PubKey: approverAccount, IsSigner: true, IsWritable: false},
 		{PubKey: mintAccount, IsSigner: false, IsWritable: true},
 		{PubKey: toAccount, IsSigner: false, IsWritable: true},
-		{PubKey: tokenProgram, IsSigner: false, IsWritable: false},
+		{PubKey: mintManager, IsSigner: false, IsWritable: false},
+		{PubKey: mintAuthority, IsSigner: false, IsWritable: false},
+		{PubKey: minterProgramId, IsSigner: false, IsWritable: false},
+		{PubKey: common.TokenProgramID, IsSigner: false, IsWritable: false},
 	}
 
 	return types.Instruction{

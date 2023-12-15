@@ -20,7 +20,6 @@ var feeRecipient = common.PublicKeyFromString("DGk5qWr3ErhYdSrB64tUsy5sFyyQ8Gf9b
 var localClient = []string{"https://api.devnet.solana.com"}
 
 var id = types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
-var id2 = types.AccountFromPrivateKeyBytes([]byte{12, 118, 31, 12, 142, 132, 83, 25, 46, 59, 254, 109, 3, 206, 1, 153, 178, 123, 50, 146, 96, 83, 237, 214, 94, 147, 87, 127, 42, 39, 97, 56, 62, 33, 157, 80, 212, 54, 114, 143, 17, 90, 115, 208, 188, 27, 52, 104, 139, 106, 39, 235, 193, 194, 9, 133, 204, 227, 135, 55, 224, 76, 179, 74})
 var admin = types.AccountFromPrivateKeyBytes([]byte{142, 61, 202, 203, 179, 165, 19, 161, 233, 247, 36, 152, 120, 184, 62, 139, 88, 69, 120, 227, 94, 87, 244, 241, 207, 94, 29, 115, 12, 177, 134, 33, 252, 93, 7, 42, 197, 184, 34, 111, 171, 84, 21, 195, 106, 93, 249, 214, 173, 78, 212, 191, 16, 138, 230, 43, 25, 124, 41, 12, 133, 211, 37, 242})
 var staker = types.AccountFromPrivateKeyBytes([]byte{90, 111, 119, 62, 149, 35, 16, 87, 135, 90, 47, 202, 31, 47, 85, 140, 65, 17, 88, 226, 229, 193, 38, 9, 103, 255, 72, 136, 150, 213, 224, 50, 47, 183, 28, 18, 35, 161, 125, 133, 219, 9, 124, 130, 85, 200, 82, 75, 251, 232, 246, 67, 137, 238, 173, 105, 146, 126, 153, 90, 190, 88, 30, 81})
 
@@ -316,86 +315,6 @@ func TestWithdraw(t *testing.T) {
 	}
 
 	fmt.Println("withdraw txHash:", txHash)
-
-}
-
-func TestSetActive(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-	admin := admin
-
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			rsolprog.SetActive(
-				rSolProgramIdDev,
-				stakeManager,
-				admin.PublicKey,
-				107717120,
-			),
-		},
-		Signers:         []types.Account{feePayer, admin},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("set active txHash:", txHash)
-
-}
-
-func TestSetRsolSupply(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-	admin := admin
-
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			rsolprog.SetRsolSupply(
-				rSolProgramIdDev,
-				stakeManager,
-				admin.PublicKey,
-				1107717120,
-			),
-		},
-		Signers:         []types.Account{feePayer, admin},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("set rsol supply txHash:", txHash)
 
 }
 
