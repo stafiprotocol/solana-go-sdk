@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/mr-tron/base58"
 	"github.com/stafiprotocol/solana-go-sdk/client"
 	"github.com/stafiprotocol/solana-go-sdk/common"
 	"github.com/stafiprotocol/solana-go-sdk/rsolprog"
@@ -15,8 +16,8 @@ import (
 var rSolProgramIdDev = common.PublicKeyFromString("5N1PkgbPx5Qs3eGaJre16AHsNMRPYM9JSwxXDG83tWX9")
 var minterProgramIdDev = common.PublicKeyFromString("HDb577JnkPHLFpfbTg1ncX9jmVHGjzX6S9bgZvNnXjVj")
 
-var validator = common.PublicKeyFromString("FwR3PbjS5iyqzLiLugrBqKSa5EKZ4vK9SKs7eQXtT59f")
-var feeRecipient = common.PublicKeyFromString("DGk5qWr3ErhYdSrB64tUsy5sFyyQ8Gf9bhPhYsVk62DB") //random
+var validator = common.PublicKeyFromString("vgcDar2pryHvMgPkKaZfh8pQy4BJxv7SpwUG7zinWjG")
+var feeRecipient = common.PublicKeyFromString("344uJfqqsMji7jkcoGY6vcHpExsupcygpex6bJvq2ywG") //random
 var localClient = []string{"https://api.devnet.solana.com"}
 
 var id = types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
@@ -161,6 +162,100 @@ func TestMigrateStakeAccount(t *testing.T) {
 
 }
 
+func TestAddValidator(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	adminBts, _ := base58.Decode("2u6qDjEobBnbQuCsW18ELizXx8AUn1SF3JF42c88BbDrw97ADrKg1zw7tokJ1F5fRort8Tzjb9iPfVcDJ4FRXhrd")
+	admin := types.AccountFromPrivateKeyBytes(adminBts)
+	feePayer := id
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	newValidator := common.PublicKeyFromString("5ZWgXcyqrrNpQHCme5SdC5hCeYb2o3fEJhF7Gok3bTVN")
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			rsolprog.AddValidator(
+				rSolProgramIdDev,
+				stakeManager,
+				admin.PublicKey,
+				newValidator,
+			),
+		},
+		Signers:         []types.Account{feePayer, admin},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	fmt.Println("migrate stake account txHash:", txHash)
+
+}
+
+func TestRedelegate(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	adminBts, _ := base58.Decode("2u6qDjEobBnbQuCsW18ELizXx8AUn1SF3JF42c88BbDrw97ADrKg1zw7tokJ1F5fRort8Tzjb9iPfVcDJ4FRXhrd")
+	admin := types.AccountFromPrivateKeyBytes(adminBts)
+	feePayer := id
+	rentPayer := id
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	newValidator := common.PublicKeyFromString("5ZWgXcyqrrNpQHCme5SdC5hCeYb2o3fEJhF7Gok3bTVN")
+	stakePool := common.PublicKeyFromString("GYoZ5kSumbV2zqCbRYp9jex1AFaCWjbFYQS9URDmswFG")
+	fromStakeAccount := common.PublicKeyFromString("Db8kTcMbMRrHN1jkXBEAsyDHzPtsHh6Rcm1ae7HHRGSy")
+
+	splitStakeAccount := types.NewAccount()
+	toStakeAccount := types.NewAccount()
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			rsolprog.Redelegate(
+				rSolProgramIdDev,
+				stakeManager,
+				admin.PublicKey,
+				newValidator,
+				stakePool,
+				fromStakeAccount,
+				splitStakeAccount.PublicKey,
+				toStakeAccount.PublicKey,
+				rentPayer.PublicKey,
+				200000000,
+			),
+		},
+		Signers:         []types.Account{feePayer, admin, splitStakeAccount, toStakeAccount},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	fmt.Println("migrate stake account txHash:", txHash)
+
+}
+
 func TestStake(t *testing.T) {
 	c := client.NewClient(localClient)
 
@@ -171,17 +266,17 @@ func TestStake(t *testing.T) {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
 
-	rSolMint := common.PublicKeyFromString("F6KFk1jzBNQis7HdVdUyFLYQ6L3dVZoYL4VwwgQvnjBE") // rsol_mint.json
+	rSolMint := common.PublicKeyFromString("6jnyhgA2dPWDpw1WqgTaCyjp8otXkP5655DQ6RSnwbv5") // rsol_mint.json
 	feePayer := id
-	from := staker
+	from := id
 
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-	stakePool := common.PublicKeyFromString("33aoSpaFKDuKqh35a1N5eGopFH4nr51DENxh9bkzvnKe")
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	stakePool := common.PublicKeyFromString("GYoZ5kSumbV2zqCbRYp9jex1AFaCWjbFYQS9URDmswFG")
 
-	mintTo := common.PublicKeyFromString("NqYLohWkaVQq8vRfaxJm51LfmfHkpg9eVjsz34bsCup")
+	mintTo := common.PublicKeyFromString("61wKZgejN7CEL8QYQoxUmjWgQmgx3aNqUX6ivGKKxPkF")
 
-	minterManagerAccount := common.PublicKeyFromString("55GGz9kCyU8guxJBTtGSscWbM6WS9RsZ4nDmKZU19ubF")
-	mintAuthority := common.PublicKeyFromString("8fXWpVJfVyeh6RnS3p1FtNV6iEPxqddgw1Xa2BHyLxvV")
+	minterManagerAccount := common.PublicKeyFromString("5ou6pU6ByghiA148DokoVQLpPqGcnww9qS8TQzwcmQcx")
+	mintAuthority := common.PublicKeyFromString("66DBm2GT5ELRvXfZ8GVbvurMrwcsxK59rNvGULnsnXvW")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -223,22 +318,21 @@ func TestUnstake(t *testing.T) {
 	if err != nil {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
-
-	rSolMint := common.PublicKeyFromString("F6KFk1jzBNQis7HdVdUyFLYQ6L3dVZoYL4VwwgQvnjBE") // rsol_mint.json
+	rSolMint := common.PublicKeyFromString("6jnyhgA2dPWDpw1WqgTaCyjp8otXkP5655DQ6RSnwbv5") // rsol_mint.json
 	feePayer := id
-	burnRsolAuthority := staker
+
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+
+	burnRsolAuthority := id
 	unstakeAccount := types.NewAccount()
 
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-
-	burnRsolFrom := common.PublicKeyFromString("NqYLohWkaVQq8vRfaxJm51LfmfHkpg9eVjsz34bsCup")
+	burnRsolFrom := common.PublicKeyFromString("61wKZgejN7CEL8QYQoxUmjWgQmgx3aNqUX6ivGKKxPkF")
 	unstakeAccountRent, err := c.GetMinimumBalanceForRentExemption(context.Background(), rsolprog.UnstakeAccountLengthDefault)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-
 		Instructions: []types.Instruction{
 			sysprog.CreateAccount(
 				feePayer.PublicKey,
@@ -255,7 +349,7 @@ func TestUnstake(t *testing.T) {
 				burnRsolAuthority.PublicKey,
 				unstakeAccount.PublicKey,
 				feeRecipient,
-				500,
+				500000000,
 			),
 		},
 		Signers:         []types.Account{feePayer, burnRsolAuthority, unstakeAccount},
@@ -329,8 +423,7 @@ func TestEraNew(t *testing.T) {
 	}
 
 	feePayer := id
-
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -368,8 +461,8 @@ func TestEraBond(t *testing.T) {
 	feePayer := id
 	rentPayer := id
 	stakeAccount := types.NewAccount()
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-	stakePool := common.PublicKeyFromString("33aoSpaFKDuKqh35a1N5eGopFH4nr51DENxh9bkzvnKe")
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	stakePool := common.PublicKeyFromString("GYoZ5kSumbV2zqCbRYp9jex1AFaCWjbFYQS9URDmswFG")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -411,9 +504,11 @@ func TestEraUnbond(t *testing.T) {
 	feePayer := id
 	rentPayer := id
 	splitStakeAccount := types.NewAccount()
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-	stakePool := common.PublicKeyFromString("33aoSpaFKDuKqh35a1N5eGopFH4nr51DENxh9bkzvnKe")
-	stakeAccount := common.PublicKeyFromString("BbHMFJozZ8SDRgMTTHDdbDNsKuBSNLaBV4o16T4mAUKz")
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	stakePool := common.PublicKeyFromString("GYoZ5kSumbV2zqCbRYp9jex1AFaCWjbFYQS9URDmswFG")
+	// stakeAccount := common.PublicKeyFromString("Gawre8qmHnyKs5zpaDFPXSMpZq9D9YBCxmvQ4A18wue3")
+	stakeAccount := common.PublicKeyFromString("Db8kTcMbMRrHN1jkXBEAsyDHzPtsHh6Rcm1ae7HHRGSy")
+	// stakeAccount := common.PublicKeyFromString("APZuLDgxQNh2zgidnrnhPKAE1HsQmUMSSURQDkM6s7ps")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -427,7 +522,7 @@ func TestEraUnbond(t *testing.T) {
 				rentPayer.PublicKey,
 			),
 		},
-		Signers:         []types.Account{feePayer, splitStakeAccount},
+		Signers:         []types.Account{feePayer, splitStakeAccount, rentPayer},
 		FeePayer:        feePayer.PublicKey,
 		RecentBlockHash: res.Blockhash,
 	})
@@ -455,9 +550,10 @@ func TestEraUpdateActive(t *testing.T) {
 
 	feePayer := id
 
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-	stakeAccount := common.PublicKeyFromString("5jTc9Q44AF9avDtKGcQKNYNUZbNYtiigBygoj4bLwmdh")
-	// stakeAccount := common.PublicKeyFromString("BbHMFJozZ8SDRgMTTHDdbDNsKuBSNLaBV4o16T4mAUKz")
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	// stakeAccount := common.PublicKeyFromString("APZuLDgxQNh2zgidnrnhPKAE1HsQmUMSSURQDkM6s7ps")
+	// stakeAccount := common.PublicKeyFromString("Gawre8qmHnyKs5zpaDFPXSMpZq9D9YBCxmvQ4A18wue3")
+	stakeAccount := common.PublicKeyFromString("Db8kTcMbMRrHN1jkXBEAsyDHzPtsHh6Rcm1ae7HHRGSy")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -494,16 +590,17 @@ func TestEraUpdateRate(t *testing.T) {
 
 	feePayer := id
 
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
 
-	rSolMint := common.PublicKeyFromString("F6KFk1jzBNQis7HdVdUyFLYQ6L3dVZoYL4VwwgQvnjBE") // rsol_mint.json
+	rSolMint := common.PublicKeyFromString("6jnyhgA2dPWDpw1WqgTaCyjp8otXkP5655DQ6RSnwbv5") // rsol_mint.json
 
 	stakePool, _, err := common.FindProgramAddress([][]byte{stakeManager.Bytes(), []byte("pool_seed")}, rSolProgramIdDev)
 	if err != nil {
 		t.Fatal(err)
 	}
-	minterManagerAccount := common.PublicKeyFromString("55GGz9kCyU8guxJBTtGSscWbM6WS9RsZ4nDmKZU19ubF")
-	mintAuthority := common.PublicKeyFromString("8fXWpVJfVyeh6RnS3p1FtNV6iEPxqddgw1Xa2BHyLxvV")
+
+	minterManagerAccount := common.PublicKeyFromString("5ou6pU6ByghiA148DokoVQLpPqGcnww9qS8TQzwcmQcx")
+	mintAuthority := common.PublicKeyFromString("66DBm2GT5ELRvXfZ8GVbvurMrwcsxK59rNvGULnsnXvW")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -577,6 +674,49 @@ func TestEraMerge(t *testing.T) {
 	}
 
 	fmt.Println("era merge txHash:", txHash)
+}
+
+func TestEraWithdraw(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	feePayer := id
+
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	stakeAccount := common.PublicKeyFromString("HATNwBQQsCBxd3G4RNMK7ScgX5CsEhm8e4EK1TT8jcrB")
+	stakePool, _, err := common.FindProgramAddress([][]byte{stakeManager.Bytes(), []byte("pool_seed")}, rSolProgramIdDev)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			rsolprog.EraWithdraw(
+				rSolProgramIdDev,
+				stakeManager,
+				stakePool,
+				stakeAccount,
+			),
+		},
+		Signers:         []types.Account{feePayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	fmt.Println("era withdraw txHash:", txHash)
 }
 
 func TestFindProgramAddress(t *testing.T) {

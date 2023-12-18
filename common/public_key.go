@@ -18,7 +18,10 @@ const (
 type PublicKey [PublicKeyLength]byte
 
 func PublicKeyFromString(s string) PublicKey {
-	d, _ := base58.Decode(s)
+	d, err := base58.Decode(s)
+	if err != nil {
+		panic(err)
+	}
 	return PublicKeyFromBytes(d)
 }
 

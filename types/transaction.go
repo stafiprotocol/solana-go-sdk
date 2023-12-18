@@ -17,21 +17,20 @@ type Transaction struct {
 }
 
 func (tx *Transaction) sign(accounts []Account) (*Transaction, error) {
-	if int(tx.Message.Header.NumRequireSignatures) != len(accounts) {
+	accountMap := map[common.PublicKey]ed25519.PrivateKey{}
+	for _, account := range accounts {
+		accountMap[account.PublicKey] = account.PrivateKey
+	}
+
+	if int(tx.Message.Header.NumRequireSignatures) != len(accountMap) {
 		return nil, fmt.Errorf("signer's num not match,require %d real is %d",
-			tx.Message.Header.NumRequireSignatures, len(accounts))
+			tx.Message.Header.NumRequireSignatures, len(accountMap))
 	}
 
 	message, err := tx.Message.Serialize()
 	if err != nil {
 		return nil, err
 	}
-
-	accountMap := map[common.PublicKey]ed25519.PrivateKey{}
-	for _, account := range accounts {
-		accountMap[account.PublicKey] = account.PrivateKey
-	}
-
 	for i := 0; i < int(tx.Message.Header.NumRequireSignatures); i++ {
 		privateKey, exist := accountMap[tx.Message.Accounts[i]]
 		if !exist {

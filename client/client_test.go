@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -19,13 +20,15 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
+var c = client.NewClient([]string{"https://api.devnet.solana.com"})
+
 // var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
 // var c = client.NewClient([]string{client.MainnetRPCEndpoint})
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
 
 // var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/6e0a86ceca790361d95a588efcd1af0b"})
-var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/308aa4d20d1624a5a35e2d7fca8624f9"})
+// var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/308aa4d20d1624a5a35e2d7fca8624f9"})
 
 // var c = client.NewClient([]string{"https://try-rpc.mainnet.solana.blockdaemon.tech"})
 
@@ -131,11 +134,12 @@ func TestGetStakeActivation(t *testing.T) {
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "B6gVbwSfRxonjx6VWHaF5bZycRKRnW9aMw7MtxuzAGTg")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", accountActivateInfo)
+	return
 	accountActivateInfoBase1, err := c.GetStakeAccountInfo(context.Background(), "4ackc4eexr1DN5eNwzQ5DnNNCAVJiCU84Ev4abUMRKau")
 	if err != nil {
 		t.Fatal(err)
@@ -175,6 +179,15 @@ func TestGetMultisigTxInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Printf("%+v", info))
+}
+
+func TestGetStakeManager(t *testing.T) {
+	info, err := c.GetStakeManager(context.Background(), "FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bts, _ := json.MarshalIndent(info,"","  ")
+	t.Log(fmt.Printf("%s", string(bts)))
 }
 
 func TestGetMultisigInfoAccount(t *testing.T) {

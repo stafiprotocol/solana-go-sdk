@@ -11,12 +11,15 @@ import (
 type Instruction [8]byte
 type Event [8]byte
 
-var StakeManagerAccountLengthDefault = uint64(2000000)
+var StakeManagerAccountLengthDefault = uint64(100000)
 var UnstakeAccountLengthDefault = uint64(100)
 
 var (
 	InstructionInitialize          Instruction
 	InstructionMigrateStakeAccount Instruction
+
+	InstructionAddValidator Instruction
+	InstructionRedelegate   Instruction
 
 	InstructionStake    Instruction
 	InstructionUnstake  Instruction
@@ -28,6 +31,7 @@ var (
 	InstructionEraUpdateActive Instruction
 	InstructionEraUpdateRate   Instruction
 	InstructionEraMerge        Instruction
+	InstructionEraWithdraw     Instruction
 )
 
 func init() {
@@ -36,6 +40,11 @@ func init() {
 
 	migrateStakeAccountHash := sha256.Sum256([]byte("global:migrate_stake_account"))
 	copy(InstructionMigrateStakeAccount[:], migrateStakeAccountHash[:8])
+
+	addValidatorHash := sha256.Sum256([]byte("global:add_validator"))
+	copy(InstructionAddValidator[:], addValidatorHash[:8])
+	redelegateHash := sha256.Sum256([]byte("global:redelegate"))
+	copy(InstructionRedelegate[:], redelegateHash[:8])
 
 	stakeHash := sha256.Sum256([]byte("global:stake"))
 	copy(InstructionStake[:], stakeHash[:8])
@@ -56,6 +65,8 @@ func init() {
 	copy(InstructionEraUpdateRate[:], eraUpdateRateHash[:8])
 	eraMergeHash := sha256.Sum256([]byte("global:era_merge"))
 	copy(InstructionEraMerge[:], eraMergeHash[:8])
+	eraWithdrawHash := sha256.Sum256([]byte("global:era_withdraw"))
+	copy(InstructionEraWithdraw[:], eraWithdrawHash[:8])
 
 }
 
@@ -133,6 +144,79 @@ func MigrateStakeAccount(
 			{PubKey: stakeAuthority, IsSigner: true, IsWritable: false},
 			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
 			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func Redelegate(
+	rSolProgramID,
+	stakeManager,
+	admin,
+	to_validator,
+	stakePool,
+	fromStakeAccount,
+	splitStakeAccount,
+	toStakeAccount,
+	rentPayer common.PublicKey,
+	amount uint64,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+		Amount      uint64
+	}{
+		Instruction: InstructionRedelegate,
+		Amount:      amount,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+			{PubKey: to_validator, IsSigner: false, IsWritable: true},
+			{PubKey: stakePool, IsSigner: false, IsWritable: false},
+			{PubKey: fromStakeAccount, IsSigner: false, IsWritable: true},
+			{PubKey: splitStakeAccount, IsSigner: true, IsWritable: true},
+			{PubKey: toStakeAccount, IsSigner: true, IsWritable: true},
+			{PubKey: rentPayer, IsSigner: false, IsWritable: true},
+			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.StakeConfigPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.SysVarStakeHistoryPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
+			{PubKey: common.SystemProgramID, IsSigner: false, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func AddValidator(
+	rSolProgramID,
+	stakeManager,
+	admin,
+	newValidator common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction  Instruction
+		NewValidator common.PublicKey
+	}{
+		Instruction:  InstructionAddValidator,
+		NewValidator: newValidator,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
 		},
 		Data: data,
 	}
@@ -315,7 +399,7 @@ func EraUnbond(
 	rSolProgramID,
 	stakeManager,
 	stakePool,
-	stakeAccount,
+	fromStakeAccount,
 	splitStakeAccount,
 	validator,
 	rentPayer common.PublicKey,
@@ -335,12 +419,13 @@ func EraUnbond(
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stakePool, IsSigner: false, IsWritable: false},
-			{PubKey: stakeAccount, IsSigner: false, IsWritable: true},
+			{PubKey: fromStakeAccount, IsSigner: false, IsWritable: true},
 			{PubKey: splitStakeAccount, IsSigner: true, IsWritable: true},
 			{PubKey: validator, IsSigner: false, IsWritable: true},
 			{PubKey: rentPayer, IsSigner: true, IsWritable: true},
 			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
 			{PubKey: common.SysVarRentPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.SysVarStakeHistoryPubkey, IsSigner: false, IsWritable: false},
 			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
 			{PubKey: common.SystemProgramID, IsSigner: false, IsWritable: false},
 		},
@@ -433,6 +518,36 @@ func EraMerge(
 			{PubKey: srcStakeAccount, IsSigner: false, IsWritable: true},
 			{PubKey: dstStakeAccount, IsSigner: false, IsWritable: true},
 			{PubKey: stakePool, IsSigner: false, IsWritable: false},
+			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.SysVarStakeHistoryPubkey, IsSigner: false, IsWritable: false},
+			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func EraWithdraw(
+	rSolProgramID,
+	stakeManager,
+	stakePool,
+	stakeAccount common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+	}{
+		Instruction: InstructionEraWithdraw,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: stakePool, IsSigner: false, IsWritable: true},
+			{PubKey: stakeAccount, IsSigner: false, IsWritable: true},
 			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
 			{PubKey: common.SysVarStakeHistoryPubkey, IsSigner: false, IsWritable: false},
 			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
