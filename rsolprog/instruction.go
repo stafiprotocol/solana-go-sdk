@@ -18,8 +18,9 @@ var (
 	InstructionInitialize          Instruction
 	InstructionMigrateStakeAccount Instruction
 
-	InstructionAddValidator Instruction
-	InstructionRedelegate   Instruction
+	InstructionAddValidator       Instruction
+	InstructionRedelegate         Instruction
+	InstructionSetRateChangeLimit Instruction
 
 	InstructionStake    Instruction
 	InstructionUnstake  Instruction
@@ -45,6 +46,8 @@ func init() {
 	copy(InstructionAddValidator[:], addValidatorHash[:8])
 	redelegateHash := sha256.Sum256([]byte("global:redelegate"))
 	copy(InstructionRedelegate[:], redelegateHash[:8])
+	setRateChangeLimitHash := sha256.Sum256([]byte("global:set_rate_change_limit"))
+	copy(InstructionSetRateChangeLimit[:], setRateChangeLimitHash[:8])
 
 	stakeHash := sha256.Sum256([]byte("global:stake"))
 	copy(InstructionStake[:], stakeHash[:8])
@@ -207,6 +210,34 @@ func AddValidator(
 	}{
 		Instruction:  InstructionAddValidator,
 		NewValidator: newValidator,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func SetRateChangeLimit(
+	rSolProgramID,
+	stakeManager,
+	admin common.PublicKey,
+	rateChangeLimit uint64,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction     Instruction
+		RateChangeLimit uint64
+	}{
+		Instruction:     InstructionSetRateChangeLimit,
+		RateChangeLimit: rateChangeLimit,
 	})
 	if err != nil {
 		panic(err)

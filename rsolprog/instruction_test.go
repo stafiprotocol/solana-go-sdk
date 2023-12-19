@@ -386,7 +386,6 @@ func TestWithdraw(t *testing.T) {
 	unstakeAccount := common.PublicKeyFromString("Cjxm5bHvrxTcnwgwL2uLSpJDTRzaPkQkSnvSjvyfw71i")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-
 		Instructions: []types.Instruction{
 			rsolprog.Withdraw(
 				rSolProgramIdDev,
