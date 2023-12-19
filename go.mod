@@ -1,6 +1,6 @@
 module github.com/stafiprotocol/solana-go-sdk
 
-go 1.19
+go 1.21
 
 require (
 	github.com/dfuse-io/binary v0.0.0-20210216024852-4ae6830a495d

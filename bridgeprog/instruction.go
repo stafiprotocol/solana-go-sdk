@@ -18,6 +18,7 @@ var (
 	InstructionSetOwners           Instruction
 	InstructionChangeThreshold     Instruction
 	InstructionSetResourceId       Instruction
+	InstructionRemoveResourceId    Instruction
 	InstructionTransferOut         Instruction
 	InstructionSetFeeReceiver      Instruction
 	InstructionSetFeeAmount        Instruction
@@ -42,6 +43,8 @@ func init() {
 	copy(InstructionChangeThreshold[:], changeThresholdHash[:8])
 	setResourceIdHash := sha256.Sum256([]byte("global:set_resource_id"))
 	copy(InstructionSetResourceId[:], setResourceIdHash[:8])
+	removeResourceIdHash := sha256.Sum256([]byte("global:remove_resource_id"))
+	copy(InstructionRemoveResourceId[:], removeResourceIdHash[:8])
 	transferOutHash := sha256.Sum256([]byte("global:transfer_out"))
 	copy(InstructionTransferOut[:], transferOutHash[:8])
 	eventTransferOutHash := sha256.Sum256([]byte("event:EventTransferOut"))
@@ -148,6 +151,36 @@ func SetResourceId(
 		Instruction: InstructionSetResourceId,
 		ResourceId:  resourceId,
 		Mint:        mint,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	accounts := []types.AccountMeta{
+		{PubKey: bridgeAccount, IsSigner: false, IsWritable: true},
+		{PubKey: adminAccount, IsSigner: true, IsWritable: false},
+	}
+
+	return types.Instruction{
+		ProgramID: bridgeProgramID,
+		Accounts:  accounts,
+		Data:      data,
+	}
+}
+
+func RemoveResourceId(
+	bridgeProgramID,
+	bridgeAccount,
+	adminAccount common.PublicKey,
+	resourceId [32]byte,
+) types.Instruction {
+
+	data, err := common.SerializeData(struct {
+		Instruction Instruction
+		ResourceId  [32]byte
+	}{
+		Instruction: InstructionRemoveResourceId,
+		ResourceId:  resourceId,
 	})
 	if err != nil {
 		panic(err)
