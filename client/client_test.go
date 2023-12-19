@@ -186,7 +186,16 @@ func TestGetStakeManager(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bts, _ := json.MarshalIndent(info,"","  ")
+	bts, _ := json.MarshalIndent(info, "", "  ")
+	t.Log(fmt.Printf("%s", string(bts)))
+}
+
+func TestGetMintManager(t *testing.T) {
+	info, err := c.GetMintManager(context.Background(), "55GGz9kCyU8guxJBTtGSscWbM6WS9RsZ4nDmKZU19ubF")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bts, _ := json.MarshalIndent(info, "", "  ")
 	t.Log(fmt.Printf("%s", string(bts)))
 }
 

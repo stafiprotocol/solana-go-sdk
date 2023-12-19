@@ -6,19 +6,19 @@ import (
 	"fmt"
 
 	"github.com/near/borsh-go"
-	"github.com/stafiprotocol/solana-go-sdk/rsolprog"
+	"github.com/stafiprotocol/solana-go-sdk/minterprog"
 )
 
-var GetStakeManagerCfgDefault = GetAccountInfoConfig{
+var GetMintManagerCfgDefault = GetAccountInfoConfig{
 	Encoding: GetAccountInfoConfigEncodingBase64,
 	DataSlice: GetAccountInfoConfigDataSlice{
 		Offset: 0,
-		Length: rsolprog.StakeManagerAccountLengthDefault,
+		Length: minterprog.MinterManagerAccountLengthDefault,
 	},
 }
 
-func (s *Client) GetStakeManager(ctx context.Context, account string) (*rsolprog.StakeManager, error) {
-	accountInfo, err := s.GetAccountInfo(ctx, account, GetStakeManagerCfgDefault)
+func (s *Client) GetMintManager(ctx context.Context, account string) (*minterprog.MintManager, error) {
+	accountInfo, err := s.GetAccountInfo(ctx, account, GetMintManagerCfgDefault)
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +43,10 @@ func (s *Client) GetStakeManager(ctx context.Context, account string) (*rsolprog
 		return nil, fmt.Errorf("no account data bytes")
 	}
 
-	stakeManager := rsolprog.StakeManager{}
-	err = borsh.Deserialize(&stakeManager, accountDataBts[8:])
+	mintManager := minterprog.MintManager{}
+	err = borsh.Deserialize(&mintManager, accountDataBts[8:])
 	if err != nil {
 		return nil, fmt.Errorf("deserialize err: %s", err.Error())
 	}
-	return &stakeManager, nil
+	return &mintManager, nil
 }
