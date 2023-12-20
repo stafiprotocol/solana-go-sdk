@@ -20,9 +20,9 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var c = client.NewClient([]string{"https://api.devnet.solana.com"})
+// var c = client.NewClient([]string{"https://api.devnet.solana.com"})
 
-// var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
+var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
 // var c = client.NewClient([]string{client.MainnetRPCEndpoint})
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
@@ -252,12 +252,12 @@ func TestGetBlock(t *testing.T) {
 
 func TestGetTransaction(t *testing.T) {
 
-	sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
-	for _, sig := range sigs {
-		t.Log(sig.Signature)
+	// sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
+	// for _, sig := range sigs {
+	// 	t.Log(sig.Signature)
 
-	}
-	info3, err := c.GetTransaction(context.Background(), "cHCEwJgTrx9DyQcSYMfvmj3sKmwALjARETknNA7g88KeMJ3tvzey888Np1v4AvcEY7szQmzvom8hJe5XQcu587q", client.GetTransactionWithLimitConfig{
+	// }
+	info3, err := c.GetTransaction(context.Background(), "4WXPE52ce1erEiE6HEnDJijCqjdCKsHDBFin1hcR8A49spDbr8ceyWPeZ9K4GyAf9T4s25kqqArKTsDkM6QizbPq", client.GetTransactionWithLimitConfig{
 		Commitment:                     client.CommitmentFinalized,
 		MaxSupportedTransactionVersion: &client.DefaultMaxSupportedTransactionVersion})
 	if err != nil {

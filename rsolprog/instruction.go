@@ -18,9 +18,11 @@ var (
 	InstructionInitialize          Instruction
 	InstructionMigrateStakeAccount Instruction
 
-	InstructionAddValidator       Instruction
-	InstructionRedelegate         Instruction
-	InstructionSetRateChangeLimit Instruction
+	InstructionAddValidator            Instruction
+	InstructionRedelegate              Instruction
+	InstructionSetRateChangeLimit      Instruction
+	InstructionSetUnstakeFeeCommission Instruction
+	InstructionSetUnbondingDuration    Instruction
 
 	InstructionStake    Instruction
 	InstructionUnstake  Instruction
@@ -48,6 +50,10 @@ func init() {
 	copy(InstructionRedelegate[:], redelegateHash[:8])
 	setRateChangeLimitHash := sha256.Sum256([]byte("global:set_rate_change_limit"))
 	copy(InstructionSetRateChangeLimit[:], setRateChangeLimitHash[:8])
+	setUnstakeFeeCommissionHash := sha256.Sum256([]byte("global:set_unstake_fee_commission"))
+	copy(InstructionSetUnstakeFeeCommission[:], setUnstakeFeeCommissionHash[:8])
+	setUnbondingDurationHash := sha256.Sum256([]byte("global:set_unbonding_duration"))
+	copy(InstructionSetUnbondingDuration[:], setUnbondingDurationHash[:8])
 
 	stakeHash := sha256.Sum256([]byte("global:stake"))
 	copy(InstructionStake[:], stakeHash[:8])
@@ -238,6 +244,62 @@ func SetRateChangeLimit(
 	}{
 		Instruction:     InstructionSetRateChangeLimit,
 		RateChangeLimit: rateChangeLimit,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func SetUnstakeFeeCommission(
+	rSolProgramID,
+	stakeManager,
+	admin common.PublicKey,
+	unstakeFeeCommission uint64,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction          Instruction
+		UnstakeFeeCommission uint64
+	}{
+		Instruction:          InstructionSetUnstakeFeeCommission,
+		UnstakeFeeCommission: unstakeFeeCommission,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func SetUnbondingDuration(
+	rSolProgramID,
+	stakeManager,
+	admin common.PublicKey,
+	unbondingDuration uint64,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction       Instruction
+		UnbondingDuration uint64
+	}{
+		Instruction:       InstructionSetUnbondingDuration,
+		UnbondingDuration: unbondingDuration,
 	})
 	if err != nil {
 		panic(err)
