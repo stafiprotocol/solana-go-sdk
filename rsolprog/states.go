@@ -6,6 +6,7 @@ import (
 
 type StakeManager struct {
 	Admin                common.PublicKey
+	Balancer             common.PublicKey
 	RSolMint             common.PublicKey
 	FeeRecipient         common.PublicKey
 	PoolSeedBump         uint8

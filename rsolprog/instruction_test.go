@@ -203,6 +203,88 @@ func TestAddValidator(t *testing.T) {
 
 }
 
+func TestReallocStakeManager(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	adminBts, _ := base58.Decode("2u6qDjEobBnbQuCsW18ELizXx8AUn1SF3JF42c88BbDrw97ADrKg1zw7tokJ1F5fRort8Tzjb9iPfVcDJ4FRXhrd")
+	admin := types.AccountFromPrivateKeyBytes(adminBts)
+	feePayer := id
+	rentPayer := id
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			rsolprog.ReallocStakeManager(
+				rSolProgramIdDev,
+				stakeManager,
+				admin.PublicKey,
+				rentPayer.PublicKey,
+				100,
+			),
+		},
+		Signers:         []types.Account{feePayer, admin, rentPayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	fmt.Println("ReallocStakeManager stake account txHash:", txHash)
+
+}
+
+func TestUpgradeStakeManager(t *testing.T) {
+	c := client.NewClient(localClient)
+
+	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
+		Commitment: client.CommitmentConfirmed,
+	})
+	if err != nil {
+		fmt.Printf("get recent block hash error, err: %v\n", err)
+	}
+
+	adminBts, _ := base58.Decode("2u6qDjEobBnbQuCsW18ELizXx8AUn1SF3JF42c88BbDrw97ADrKg1zw7tokJ1F5fRort8Tzjb9iPfVcDJ4FRXhrd")
+	admin := types.AccountFromPrivateKeyBytes(adminBts)
+	feePayer := id
+	rentPayer := id
+	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+
+	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
+		Instructions: []types.Instruction{
+			rsolprog.UpgradeStakeManager(
+				rSolProgramIdDev,
+				stakeManager,
+				admin.PublicKey,
+			),
+		},
+		Signers:         []types.Account{feePayer, admin, rentPayer},
+		FeePayer:        feePayer.PublicKey,
+		RecentBlockHash: res.Blockhash,
+	})
+	if err != nil {
+		fmt.Printf("generate tx error, err: %v\n", err)
+	}
+	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
+	if err != nil {
+		fmt.Printf("send tx error, err: %v\n", err)
+	}
+
+	fmt.Println("UpgradeStakeManager txHash:", txHash)
+
+}
+
 func TestRedelegate(t *testing.T) {
 	c := client.NewClient(localClient)
 
@@ -552,7 +634,7 @@ func TestEraUpdateActive(t *testing.T) {
 	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
 	// stakeAccount := common.PublicKeyFromString("APZuLDgxQNh2zgidnrnhPKAE1HsQmUMSSURQDkM6s7ps")
 	// stakeAccount := common.PublicKeyFromString("Gawre8qmHnyKs5zpaDFPXSMpZq9D9YBCxmvQ4A18wue3")
-	stakeAccount := common.PublicKeyFromString("Db8kTcMbMRrHN1jkXBEAsyDHzPtsHh6Rcm1ae7HHRGSy")
+	stakeAccount := common.PublicKeyFromString("FGnk3JMdmGQDeYCVCtR6DuUPVUUpuRyBN2qAWnf2Zi2z")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{

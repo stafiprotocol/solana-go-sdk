@@ -23,6 +23,8 @@ var (
 	InstructionSetRateChangeLimit      Instruction
 	InstructionSetUnstakeFeeCommission Instruction
 	InstructionSetUnbondingDuration    Instruction
+	InstructionReallocStakeManager     Instruction
+	InstructionUpgradeStakeManager     Instruction
 
 	InstructionStake    Instruction
 	InstructionUnstake  Instruction
@@ -54,6 +56,10 @@ func init() {
 	copy(InstructionSetUnstakeFeeCommission[:], setUnstakeFeeCommissionHash[:8])
 	setUnbondingDurationHash := sha256.Sum256([]byte("global:set_unbonding_duration"))
 	copy(InstructionSetUnbondingDuration[:], setUnbondingDurationHash[:8])
+	reallocStakeManagerHash := sha256.Sum256([]byte("global:realloc_stake_manager"))
+	copy(InstructionReallocStakeManager[:], reallocStakeManagerHash[:8])
+	upgradeStakeManagerHash := sha256.Sum256([]byte("global:upgrade_stake_manager"))
+	copy(InstructionUpgradeStakeManager[:], upgradeStakeManagerHash[:8])
 
 	stakeHash := sha256.Sum256([]byte("global:stake"))
 	copy(InstructionStake[:], stakeHash[:8])
@@ -300,6 +306,62 @@ func SetUnbondingDuration(
 	}{
 		Instruction:       InstructionSetUnbondingDuration,
 		UnbondingDuration: unbondingDuration,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func ReallocStakeManager(
+	rSolProgramID,
+	stakeManager,
+	admin,
+	rentPayer common.PublicKey,
+	newSize uint32,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+		NewSize     uint32
+	}{
+		Instruction: InstructionReallocStakeManager,
+		NewSize:     newSize,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+			{PubKey: rentPayer, IsSigner: true, IsWritable: true},
+			{PubKey: common.SystemProgramID, IsSigner: false, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func UpgradeStakeManager(
+	rSolProgramID,
+	stakeManager,
+	admin common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+	}{
+		Instruction: InstructionUpgradeStakeManager,
 	})
 	if err != nil {
 		panic(err)

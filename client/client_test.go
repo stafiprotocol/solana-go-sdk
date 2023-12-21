@@ -20,9 +20,9 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-// var c = client.NewClient([]string{"https://api.devnet.solana.com"})
+var c = client.NewClient([]string{"https://api.devnet.solana.com"})
 
-var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
+// var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
 // var c = client.NewClient([]string{client.MainnetRPCEndpoint})
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
@@ -121,7 +121,7 @@ func TestGetVersion(t *testing.T) {
 	t.Log(res)
 }
 func TestGetStakeActivation(t *testing.T) {
-	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "G7x84EPhC635pFoBqtWYiHPs5Dc7FsNwxJ6rsdXGeTL6", client.GetStakeActivationConfig{})
+	accountActivateInfo, err := c.GetStakeActivation(context.Background(), "8txg555zSkPCyjA7x3oWQqVJLKnpnd1WPYJgJkLKygmG", client.GetStakeActivationConfig{})
 	if err != nil {
 		if strings.Contains(err.Error(), "account not found") {
 			t.Log(err)
@@ -134,7 +134,7 @@ func TestGetStakeActivation(t *testing.T) {
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "B6gVbwSfRxonjx6VWHaF5bZycRKRnW9aMw7MtxuzAGTg")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "8txg555zSkPCyjA7x3oWQqVJLKnpnd1WPYJgJkLKygmG")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -255,6 +255,18 @@ func TestGetTransaction(t *testing.T) {
 	// sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
 	// for _, sig := range sigs {
 	// 	t.Log(sig.Signature)
+	tx1, err := c.GetTransactionV2(context.Background(), "2ReqccE3Dw5yop26SGHt1y9N7yq2ecEts343FxpENgovrT6cqTcW8WxJpdRLS3XKGUb9VMLrAdyQjQkYcNdMDeZz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", tx1.Meta.Err == nil)
+	return
+	tx, err := c.GetTransactionV2(context.Background(), "2obsdpsjnFzT2Tqi8w7a85K7YtwXdxEtfvC8nKWi5KuDpVMui7JPSuymtG4dUi1iLj6dqg67dtk7ti1Z9f9UVqWk")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%v", tx.Meta.Err)
+	return
 
 	// }
 	info3, err := c.GetTransaction(context.Background(), "4WXPE52ce1erEiE6HEnDJijCqjdCKsHDBFin1hcR8A49spDbr8ceyWPeZ9K4GyAf9T4s25kqqArKTsDkM6QizbPq", client.GetTransactionWithLimitConfig{
