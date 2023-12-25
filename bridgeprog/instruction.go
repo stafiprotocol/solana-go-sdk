@@ -26,7 +26,7 @@ var (
 	InstructionSetMintAuthority    Instruction
 
 	EventTransferOut       Event
-	ProgramLogPrefix       = "Program log: "
+	ProgramLogPrefix       = "Program data: "
 	EventTransferOutPrefix = ProgramLogPrefix + "7arrB4Lk4L"
 )
 

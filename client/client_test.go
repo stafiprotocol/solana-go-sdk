@@ -3,6 +3,7 @@ package client_test
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -20,9 +21,9 @@ import (
 	"github.com/stafiprotocol/solana-go-sdk/types"
 )
 
-var c = client.NewClient([]string{"https://api.devnet.solana.com"})
+// var c = client.NewClient([]string{"https://api.devnet.solana.com"})
 
-// var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
+var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
 // var c = client.NewClient([]string{client.MainnetRPCEndpoint})
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
@@ -213,6 +214,7 @@ func TestGetBridgeAccountInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(fmt.Printf("%+v", info))
+	t.Log(base58.Encode(info.FeeReceiver[:]))
 	t.Log(common.PublicKeyFromBytes(info.FeeReceiver[:]).ToBase58())
 }
 
@@ -255,11 +257,20 @@ func TestGetTransaction(t *testing.T) {
 	// sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
 	// for _, sig := range sigs {
 	// 	t.Log(sig.Signature)
-	tx1, err := c.GetTransactionV2(context.Background(), "2ReqccE3Dw5yop26SGHt1y9N7yq2ecEts343FxpENgovrT6cqTcW8WxJpdRLS3XKGUb9VMLrAdyQjQkYcNdMDeZz")
+	tx1, err := c.GetTransactionV2(context.Background(), "e6CdgiEuMiXFgETuccnULRa94yKbaXETfCC4TBeGpySskABDq3LoJysgAnPEhbr1qobhH1dCQDVgYmeyb9qNbGD")
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%+v", tx1.Meta.Err == nil)
+	bts, err := json.Marshal(tx1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%s", string(bts))
+	for _, log := range tx1.Meta.LogMessages {
+		if strings.HasPrefix(log, bridgeprog.EventTransferOutPrefix) {
+			t.Log(log)
+		}
+	}
 	return
 	tx, err := c.GetTransactionV2(context.Background(), "2obsdpsjnFzT2Tqi8w7a85K7YtwXdxEtfvC8nKWi5KuDpVMui7JPSuymtG4dUi1iLj6dqg67dtk7ti1Z9f9UVqWk")
 	if err != nil {
@@ -517,4 +528,9 @@ func TestGetProgramAccounts(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(accounts)
+}
+
+func TestEventhash(t *testing.T) {
+	hash := sha256.Sum256([]byte("event:EventTransferOut"))
+	t.Log(strings.ReplaceAll(base64.StdEncoding.EncodeToString(hash[:8])+"==", "=", ""))
 }

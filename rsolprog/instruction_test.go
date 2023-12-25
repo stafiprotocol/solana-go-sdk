@@ -302,7 +302,7 @@ func TestRedelegate(t *testing.T) {
 	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
 	newValidator := common.PublicKeyFromString("5ZWgXcyqrrNpQHCme5SdC5hCeYb2o3fEJhF7Gok3bTVN")
 	stakePool := common.PublicKeyFromString("GYoZ5kSumbV2zqCbRYp9jex1AFaCWjbFYQS9URDmswFG")
-	fromStakeAccount := common.PublicKeyFromString("Db8kTcMbMRrHN1jkXBEAsyDHzPtsHh6Rcm1ae7HHRGSy")
+	fromStakeAccount := common.PublicKeyFromString("FGnk3JMdmGQDeYCVCtR6DuUPVUUpuRyBN2qAWnf2Zi2z")
 
 	splitStakeAccount := types.NewAccount()
 	toStakeAccount := types.NewAccount()
