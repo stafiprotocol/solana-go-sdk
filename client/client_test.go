@@ -183,7 +183,8 @@ func TestGetMultisigTxInfo(t *testing.T) {
 }
 
 func TestGetStakeManager(t *testing.T) {
-	info, err := c.GetStakeManager(context.Background(), "FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	// info, err := c.GetStakeManager(context.Background(), "FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
+	info, err := c.GetStakeManager(context.Background(), "24u3pioTCN6uLsZ6sLZUDX7jPdbpDxwLqH1c8mYrL5GG")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +258,7 @@ func TestGetTransaction(t *testing.T) {
 	// sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
 	// for _, sig := range sigs {
 	// 	t.Log(sig.Signature)
-	tx1, err := c.GetTransactionV2(context.Background(), "e6CdgiEuMiXFgETuccnULRa94yKbaXETfCC4TBeGpySskABDq3LoJysgAnPEhbr1qobhH1dCQDVgYmeyb9qNbGD")
+	tx1, err := c.GetTransactionV2(context.Background(), "4E4oC8rBG1JWjNy2foxBnCwkvv9BmKSC8FnD3Amf82X5j5XsN7s3WbhFhr8bARdw4sxQkPWXqJ8i59p9aZmH23RZ")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -518,6 +519,15 @@ func TestDecodeAccount(t *testing.T) {
 }
 
 func TestGetProgramAccounts(t *testing.T) {
+
+	
+	mintAuthority, _, err := common.FindProgramAddress([][]byte{common.PublicKeyFromString("4P7hrWZNyChxDbHs6E8EDdsweHA3h7agnfxnGMDHnzxj").Bytes(), []byte("mint")}, common.PublicKeyFromString("AotGLC7pEv9BZjEcnQ4GJWLaUXPfRVYfqtuQ4Z69jERS"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(mintAuthority.ToBase58())
+	return 
+
 	accounts, err := c.GetProgramAccounts(
 		context.Background(),
 		common.TokenProgramID.ToBase58(),

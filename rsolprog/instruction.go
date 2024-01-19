@@ -19,6 +19,7 @@ var (
 	InstructionMigrateStakeAccount Instruction
 
 	InstructionAddValidator            Instruction
+	InstructionRemoveValidator         Instruction
 	InstructionRedelegate              Instruction
 	InstructionSetRateChangeLimit      Instruction
 	InstructionSetUnstakeFeeCommission Instruction
@@ -48,6 +49,8 @@ func init() {
 
 	addValidatorHash := sha256.Sum256([]byte("global:add_validator"))
 	copy(InstructionAddValidator[:], addValidatorHash[:8])
+	removeValidatorHash := sha256.Sum256([]byte("global:remove_validator"))
+	copy(InstructionRemoveValidator[:], removeValidatorHash[:8])
 	redelegateHash := sha256.Sum256([]byte("global:redelegate"))
 	copy(InstructionRedelegate[:], redelegateHash[:8])
 	setRateChangeLimitHash := sha256.Sum256([]byte("global:set_rate_change_limit"))
@@ -222,6 +225,34 @@ func AddValidator(
 	}{
 		Instruction:  InstructionAddValidator,
 		NewValidator: newValidator,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func RemoveValidator(
+	rSolProgramID,
+	stakeManager,
+	admin,
+	removeValidator common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction     Instruction
+		RemoveValidator common.PublicKey
+	}{
+		Instruction:     InstructionRemoveValidator,
+		RemoveValidator: removeValidator,
 	})
 	if err != nil {
 		panic(err)
