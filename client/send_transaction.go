@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"time"
 )
 
 type SendTransactionConfig struct {
