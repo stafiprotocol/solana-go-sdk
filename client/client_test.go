@@ -23,9 +23,10 @@ import (
 
 // var c = client.NewClient([]string{"https://api.devnet.solana.com"})
 
-var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
+// var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
-// var c = client.NewClient([]string{client.MainnetRPCEndpoint})
+var c = client.NewClient([]string{client.DevnetRPCEndpoint})
+
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
 
 // var c = client.NewClient([]string{"https://mainnet-rpc.wetez.io/solana/v1/6e0a86ceca790361d95a588efcd1af0b"})
@@ -135,7 +136,7 @@ func TestGetStakeActivation(t *testing.T) {
 }
 
 func TestGetStakeAccountInfo(t *testing.T) {
-	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "8txg555zSkPCyjA7x3oWQqVJLKnpnd1WPYJgJkLKygmG")
+	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -520,20 +521,27 @@ func TestDecodeAccount(t *testing.T) {
 
 func TestGetProgramAccounts(t *testing.T) {
 
-	
-	mintAuthority, _, err := common.FindProgramAddress([][]byte{common.PublicKeyFromString("4P7hrWZNyChxDbHs6E8EDdsweHA3h7agnfxnGMDHnzxj").Bytes(), []byte("mint")}, common.PublicKeyFromString("AotGLC7pEv9BZjEcnQ4GJWLaUXPfRVYfqtuQ4Z69jERS"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(mintAuthority.ToBase58())
-	return 
+	// mintAuthority, _, err := common.FindProgramAddress([][]byte{common.PublicKeyFromString("4P7hrWZNyChxDbHs6E8EDdsweHA3h7agnfxnGMDHnzxj").Bytes(), []byte("mint")}, common.PublicKeyFromString("AotGLC7pEv9BZjEcnQ4GJWLaUXPfRVYfqtuQ4Z69jERS"))
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// t.Log(mintAuthority.ToBase58())
+	// return
 
 	accounts, err := c.GetProgramAccounts(
 		context.Background(),
-		common.TokenProgramID.ToBase58(),
+		"5N1PkgbPx5Qs3eGaJre16AHsNMRPYM9JSwxXDG83tWX9",
 		client.GetProgramAccountsConfig{
-			WithContext: true,
-			Encoding:    client.GetAccountInfoConfigEncodingBase64})
+			Encoding: client.GetAccountInfoConfigEncodingBase64,
+			Filters: []interface{}{
+				map[string]interface{}{"memcmp": client.Memcmp{
+					Offset: 80,
+					Bytes:  "8qf",
+				}},
+				map[string]interface{}{
+					"dataSize": 100,
+				},
+			}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -543,4 +551,12 @@ func TestGetProgramAccounts(t *testing.T) {
 func TestEventhash(t *testing.T) {
 	hash := sha256.Sum256([]byte("event:EventTransferOut"))
 	t.Log(strings.ReplaceAll(base64.StdEncoding.EncodeToString(hash[:8])+"==", "=", ""))
+}
+
+func TestGetUnstakeAccountByEpoch(t *testing.T) {
+	accs, err := c.GetUnstackAccountByEpoch(context.Background(), "5N1PkgbPx5Qs3eGaJre16AHsNMRPYM9JSwxXDG83tWX9", 615)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(accs)
 }
