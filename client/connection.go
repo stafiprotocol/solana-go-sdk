@@ -15,7 +15,7 @@ const (
 	DevnetRPCEndpoint  = "https://api.devnet.solana.com"
 	TestnetRPCEndpoint = "https://testnet.solana.com"
 	MainnetRPCEndpoint = "https://api.mainnet-beta.solana.com"
-	retryLimit         = 60 * 10
+	retryLimit         = 1
 	waitTime           = time.Second * 3
 )
 

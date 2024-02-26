@@ -25,7 +25,8 @@ import (
 
 // var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
-var c = client.NewClient([]string{client.DevnetRPCEndpoint})
+// var c = client.NewClient([]string{client.MainnetRPCEndpoint})
+// var c = client.NewClient([]string{"http://rpc.solscan.com"})
 
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
 
@@ -35,7 +36,7 @@ var c = client.NewClient([]string{client.DevnetRPCEndpoint})
 // var c = client.NewClient([]string{"https://try-rpc.mainnet.solana.blockdaemon.tech"})
 
 // var c = client.NewClient([]string{"https://rpc.ankr.com/solana_mainnet"})
-// var c = client.NewClient([]string{"https://solana-mainnet.g.alchemy.com/v2/jfqvfqIeeKDImPdksQEH-SL62h-fExgv"})
+var c = client.NewClient([]string{"https://solana-mainnet.g.alchemy.com/v2/jfqvfqIeeKDImPdksQEH-SL62h-fExgv"})
 // var c = client.NewClient([]string{"https://try.blockdaemon.com/rpc/solana"})
 // var c = client.NewClient([]string{"https://try-rpc.mainnet.solana.blockdaemon.tech"})
 
@@ -554,7 +555,7 @@ func TestEventhash(t *testing.T) {
 }
 
 func TestGetUnstakeAccountByEpoch(t *testing.T) {
-	accs, err := c.GetUnstackAccountByEpoch(context.Background(), "5N1PkgbPx5Qs3eGaJre16AHsNMRPYM9JSwxXDG83tWX9", 615)
+	accs, err := c.GetUnstackAccountByEpoch(context.Background(), "EiweRuKbjvwkRhraQ5vreVd3xon3JYfB7efiPDhFuVeL", 572)
 	if err != nil {
 		t.Fatal(err)
 	}
