@@ -93,7 +93,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 		// check status code
 		if res.StatusCode != http.StatusOK {
 			err = fmt.Errorf("status code: %d, will retry", res.StatusCode)
-			fmt.Println(err, " post: ", string(j))
+			// fmt.Println(err, " post: ", string(j))
 			time.Sleep(waitTime)
 			retry++
 			res.Body.Close()
@@ -133,7 +133,7 @@ func (s *Client) request(ctx context.Context, method string, params []interface{
 
 		if generayRes.Error != (ErrorResponse{}) {
 			err = fmt.Errorf("find generalResponse err, will retry. code: %d, msg: %s, use rpc: %s", generayRes.Error.Code, generayRes.Error.Message, s.Endpoint())
-			fmt.Println(err, " post: ", string(j))
+			// fmt.Println(err, " post: ", string(j))
 			time.Sleep(waitTime)
 			retry++
 			res.Body.Close()

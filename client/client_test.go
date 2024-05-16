@@ -25,7 +25,8 @@ import (
 
 // var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
-var c = client.NewClient([]string{client.DevnetRPCEndpoint})
+// var c = client.NewClient([]string{client.DevnetRPCEndpoint})
+var c = client.NewClient([]string{"https://mainnet.helius-rpc.com/?api-key=f0e980a5-d13e-437d-8b59-f9b6957f7d19"})
 
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
 
@@ -259,7 +260,7 @@ func TestGetTransaction(t *testing.T) {
 	// sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
 	// for _, sig := range sigs {
 	// 	t.Log(sig.Signature)
-	tx1, err := c.GetTransactionV2(context.Background(), "4E4oC8rBG1JWjNy2foxBnCwkvv9BmKSC8FnD3Amf82X5j5XsN7s3WbhFhr8bARdw4sxQkPWXqJ8i59p9aZmH23RZ")
+	tx1, err := c.GetTransactionV2(context.Background(), "3CNPJHrgiFuuTtFWMfrWxEme6wEeDKjaGmRQ3XnDjhd5FmmSY5dSFnDQ85uaP5rptAE8svsxmbncWdFB5P4mLVzR")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,6 +269,7 @@ func TestGetTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%s", string(bts))
+	return
 	for _, log := range tx1.Meta.LogMessages {
 		if strings.HasPrefix(log, bridgeprog.EventTransferOutPrefix) {
 			t.Log(log)
@@ -559,4 +561,12 @@ func TestGetUnstakeAccountByEpoch(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(accs)
+}
+
+func TestGetAddrRelateTxAfterSlot(t *testing.T) {
+	txs, err := c.GetAddrRelateTxAfterSlot([]string{"CxwWmrREkaugoJ9s2uCX4TaUuWERPo2yLbP7TrD3qo9k"}, 250015966)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(txs)
 }
