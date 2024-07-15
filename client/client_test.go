@@ -260,7 +260,7 @@ func TestGetTransaction(t *testing.T) {
 	// sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
 	// for _, sig := range sigs {
 	// 	t.Log(sig.Signature)
-	tx1, err := c.GetTransactionV2(context.Background(), "3CNPJHrgiFuuTtFWMfrWxEme6wEeDKjaGmRQ3XnDjhd5FmmSY5dSFnDQ85uaP5rptAE8svsxmbncWdFB5P4mLVzR")
+	tx1, err := c.GetTransactionV2(context.Background(), "kpVajVwFb3uKFFUKf57BkBpua5zZeCcLRrQNRUXC9a8ePS5puj18LmvtCdycNi8iM2bypkhhhv8mVY8criBd1Ba")
 	if err != nil {
 		t.Fatal(err)
 	}

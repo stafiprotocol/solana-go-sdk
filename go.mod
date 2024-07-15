@@ -7,6 +7,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0
 	github.com/near/borsh-go v0.3.2-0.20220516180422-1ff87d108454
 	github.com/teserakt-io/golang-ed25519 v0.0.0-20210104091850-3888c087a4c8
+	golang.org/x/sync v0.7.0
 )
 
 require (
@@ -23,5 +24,4 @@ require (
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
 )
