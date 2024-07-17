@@ -36,6 +36,7 @@ type StakeManager struct {
 	Validators       []common.PublicKey
 	StakeAccounts    []common.PublicKey
 	SplitAccounts    []common.PublicKey
+	EraRates         []EraRate
 	EraProcessData   EraProcessData
 }
 
@@ -45,6 +46,11 @@ type EraProcessData struct {
 	OldActive            uint64
 	NewActive            uint64
 	PendingStakeAccounts []common.PublicKey
+}
+
+type EraRate struct {
+	Era  uint64
+	Rate uint64
 }
 
 type UnstakeAccount struct {

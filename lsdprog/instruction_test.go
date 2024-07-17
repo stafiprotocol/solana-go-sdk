@@ -257,14 +257,14 @@ func TestStake(t *testing.T) {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
 
-	rSolMint := common.PublicKeyFromString("99Wg1Vb9vA3S1GRGDWorHwDbGNhUGUCrbE5VeEqmg1p6") // rsol_mint.json
+	rSolMint := common.PublicKeyFromString("4vHaXZjoP412S9yTpgAmLM5q2oDNS8PZY9jPfPDq8GGS") // rsol_mint.json
 	feePayer := id
 	from := id
 
-	stakeManager := common.PublicKeyFromString("HPaeDVBXtN2xdx3A56MHf4xx9jxqF97QmNA9w8b5zmTz")
-	stakePool := common.PublicKeyFromString("7jZyhr2HCfc9FUBfFjKrw9NZr9BToDhRANYFkSJsrs3b")
+	stakeManager := common.PublicKeyFromString("4TGhgAsssh77bbcxZ2RezvLEz7FxVV4wCbwBXHXg6bJD")
+	stakePool := common.PublicKeyFromString("7AdHHV1dC38Q6nNYB9mtD2PxPQSzvbPYmfovqFESqfpe")
 
-	mintTo := common.PublicKeyFromString("6m5F4LMeGeHvVD46N4oWorxGftFbNTYb4dUNdDFK5wFG")
+	mintTo := common.PublicKeyFromString("DQdKkHRtio3AXYpmAm7zC94nxGRGhv1kFHCjkwPt9HTg")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
