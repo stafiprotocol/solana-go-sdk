@@ -142,7 +142,7 @@ func InitializeStakeManager(
 	return types.Instruction{
 		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
-			{PubKey: stakeManager, IsSigner: true, IsWritable: true},
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stack, IsSigner: false, IsWritable: false},
 			{PubKey: stakePool, IsSigner: false, IsWritable: true},
 			{PubKey: stackFeeAccount, IsSigner: false, IsWritable: true},
