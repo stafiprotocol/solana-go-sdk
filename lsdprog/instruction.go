@@ -19,6 +19,8 @@ var (
 	InstructionInitializeStack        Instruction
 	InstructionInitializeStakeManager Instruction
 
+	InstructionAddEntrustedStakeManager Instruction
+
 	InstructionAddValidator             Instruction
 	InstructionRemoveValidator          Instruction
 	InstructionRedelegate               Instruction
@@ -45,6 +47,9 @@ func init() {
 	copy(InstructionInitializeStack[:], initializeStackHash[:8])
 	initializeStakeManagerHash := sha256.Sum256([]byte("global:initialize_stake_manager"))
 	copy(InstructionInitializeStakeManager[:], initializeStakeManagerHash[:8])
+
+	addEntrustedStakeManagerHash := sha256.Sum256([]byte("global:add_entrusted_stake_manager"))
+	copy(InstructionAddEntrustedStakeManager[:], addEntrustedStakeManagerHash[:8])
 
 	addValidatorHash := sha256.Sum256([]byte("global:add_validator"))
 	copy(InstructionAddValidator[:], addValidatorHash[:8])
@@ -86,7 +91,7 @@ func init() {
 }
 
 func InitializeStack(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stack,
 	rentPayer,
 	admin common.PublicKey,
@@ -102,9 +107,9 @@ func InitializeStack(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
-			{PubKey: stack, IsSigner: false, IsWritable: true},
+			{PubKey: stack, IsSigner: true, IsWritable: true},
 			{PubKey: rentPayer, IsSigner: true, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
 			{PubKey: common.SystemProgramID, IsSigner: false, IsWritable: false},
@@ -114,7 +119,7 @@ func InitializeStack(
 }
 
 func InitializeStakeManager(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	stack,
 	stakePool,
@@ -135,9 +140,9 @@ func InitializeStakeManager(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
-			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: stakeManager, IsSigner: true, IsWritable: true},
 			{PubKey: stack, IsSigner: false, IsWritable: false},
 			{PubKey: stakePool, IsSigner: false, IsWritable: true},
 			{PubKey: stackFeeAccount, IsSigner: false, IsWritable: true},
@@ -155,7 +160,7 @@ func InitializeStakeManager(
 }
 
 func Redelegate(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	admin,
 	to_validator,
@@ -179,7 +184,7 @@ func Redelegate(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
@@ -199,8 +204,36 @@ func Redelegate(
 	}
 }
 
+func AddEntrustedStakeManager(
+	lsdProgramID,
+	stack,
+	admin,
+	entrustedStakeManager common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction  Instruction
+		StakeManager common.PublicKey
+	}{
+		Instruction:  InstructionAddEntrustedStakeManager,
+		StakeManager: entrustedStakeManager,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: lsdProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stack, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
 func AddValidator(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	admin,
 	newValidator common.PublicKey,
@@ -218,7 +251,7 @@ func AddValidator(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
@@ -228,7 +261,7 @@ func AddValidator(
 }
 
 func RemoveValidator(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	admin,
 	removeValidator common.PublicKey,
@@ -246,7 +279,7 @@ func RemoveValidator(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
@@ -256,7 +289,7 @@ func RemoveValidator(
 }
 
 func SetRateChangeLimit(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	admin common.PublicKey,
 	rateChangeLimit uint64,
@@ -274,7 +307,7 @@ func SetRateChangeLimit(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
@@ -284,7 +317,7 @@ func SetRateChangeLimit(
 }
 
 func SetPlatformFeeCommission(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	admin common.PublicKey,
 	platformFeeCommission uint64,
@@ -302,7 +335,7 @@ func SetPlatformFeeCommission(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
@@ -312,7 +345,7 @@ func SetPlatformFeeCommission(
 }
 
 func SetUnbondingDuration(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	admin common.PublicKey,
 	unbondingDuration uint64,
@@ -330,7 +363,7 @@ func SetUnbondingDuration(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
@@ -340,7 +373,7 @@ func SetUnbondingDuration(
 }
 
 func ReallocStakeManager(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	admin,
 	rentPayer common.PublicKey,
@@ -359,7 +392,7 @@ func ReallocStakeManager(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
@@ -371,15 +404,12 @@ func ReallocStakeManager(
 }
 
 func Stake(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	stakePool,
 	from,
-	mintManager,
 	lsdTokenMint,
-	mintTo,
-	mintAuthority,
-	minterProgramId common.PublicKey,
+	mintTo common.PublicKey,
 	stakeAmount uint64,
 ) types.Instruction {
 
@@ -395,16 +425,13 @@ func Stake(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stakePool, IsSigner: false, IsWritable: true},
 			{PubKey: from, IsSigner: true, IsWritable: true},
-			{PubKey: mintManager, IsSigner: false, IsWritable: false},
 			{PubKey: lsdTokenMint, IsSigner: false, IsWritable: true},
 			{PubKey: mintTo, IsSigner: false, IsWritable: true},
-			{PubKey: mintAuthority, IsSigner: false, IsWritable: false},
-			{PubKey: minterProgramId, IsSigner: false, IsWritable: false},
 			{PubKey: common.SystemProgramID, IsSigner: false, IsWritable: false},
 			{PubKey: common.TokenProgramID, IsSigner: false, IsWritable: false},
 		},
@@ -413,7 +440,7 @@ func Stake(
 }
 
 func Unstake(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	lsdTokenMint,
 	burnLsdTokenFrom,
@@ -435,7 +462,7 @@ func Unstake(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: lsdTokenMint, IsSigner: false, IsWritable: true},
@@ -453,7 +480,7 @@ func Unstake(
 }
 
 func Withdraw(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	stakePool,
 	unstakeAccount,
@@ -470,7 +497,7 @@ func Withdraw(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stakePool, IsSigner: false, IsWritable: true},
@@ -484,7 +511,7 @@ func Withdraw(
 }
 
 func EraNew(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager common.PublicKey,
 ) types.Instruction {
 
@@ -498,7 +525,7 @@ func EraNew(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
@@ -508,7 +535,7 @@ func EraNew(
 }
 
 func EraBond(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	validator,
 	stakePool,
@@ -526,7 +553,7 @@ func EraBond(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: validator, IsSigner: false, IsWritable: true},
@@ -545,7 +572,7 @@ func EraBond(
 }
 
 func EraUnbond(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	stakePool,
 	fromStakeAccount,
@@ -564,7 +591,7 @@ func EraUnbond(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stakePool, IsSigner: false, IsWritable: false},
@@ -583,7 +610,7 @@ func EraUnbond(
 }
 
 func EraUpdateActive(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	stakeAccount common.PublicKey,
 ) types.Instruction {
@@ -598,7 +625,7 @@ func EraUpdateActive(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stakeAccount, IsSigner: false, IsWritable: false},
@@ -608,7 +635,7 @@ func EraUpdateActive(
 }
 
 func EraUpdateRate(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	stack,
 	stakePool,
@@ -628,7 +655,7 @@ func EraUpdateRate(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stack, IsSigner: false, IsWritable: false},
@@ -645,7 +672,7 @@ func EraUpdateRate(
 }
 
 func EraMerge(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	srcStakeAccount,
 	dstStakeAccount,
@@ -662,7 +689,7 @@ func EraMerge(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: srcStakeAccount, IsSigner: false, IsWritable: true},
@@ -677,7 +704,7 @@ func EraMerge(
 }
 
 func EraWithdraw(
-	stakeManagerProgramID,
+	lsdProgramID,
 	stakeManager,
 	stakePool,
 	stakeAccount common.PublicKey,
@@ -693,7 +720,7 @@ func EraWithdraw(
 	}
 
 	return types.Instruction{
-		ProgramID: stakeManagerProgramID,
+		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: stakePool, IsSigner: false, IsWritable: true},
