@@ -34,6 +34,7 @@ var (
 	InstructionWithdraw Instruction
 
 	InstructionEraNew          Instruction
+	InstructionEraSkipBond     Instruction
 	InstructionEraBond         Instruction
 	InstructionEraUnbond       Instruction
 	InstructionEraUpdateActive Instruction
@@ -75,6 +76,8 @@ func init() {
 
 	eraNewHash := sha256.Sum256([]byte("global:era_new"))
 	copy(InstructionEraNew[:], eraNewHash[:8])
+	eraSkipBondHash := sha256.Sum256([]byte("global:era_skip_bond"))
+	copy(InstructionEraSkipBond[:], eraSkipBondHash[:8])
 	eraBondHash := sha256.Sum256([]byte("global:era_bond"))
 	copy(InstructionEraBond[:], eraBondHash[:8])
 	eraUnbondHash := sha256.Sum256([]byte("global:era_unbond"))
@@ -529,6 +532,30 @@ func EraNew(
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
 			{PubKey: common.SysVarClockPubkey, IsSigner: false, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func EraSkipBond(
+	lsdProgramID,
+	stakeManager common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+	}{
+		Instruction: InstructionEraSkipBond,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: lsdProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: common.StakeProgramID, IsSigner: false, IsWritable: false},
 		},
 		Data: data,
 	}

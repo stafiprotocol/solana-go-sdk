@@ -578,3 +578,11 @@ func TestGetAddrRelateTxAfterSlot(t *testing.T) {
 	}
 	t.Log(txs)
 }
+
+func TestGetMinDelegationAmount(t *testing.T) {
+	txs, err := c.GetMinDelegationAmount(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(txs)
+}
