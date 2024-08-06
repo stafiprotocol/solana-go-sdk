@@ -3,28 +3,17 @@ package client
 import (
 	"context"
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
-	"strconv"
-
 	"github.com/mr-tron/base58"
 	"github.com/near/borsh-go"
+	"github.com/stafiprotocol/solana-go-sdk/common"
 	"github.com/stafiprotocol/solana-go-sdk/rsolprog"
 )
 
-func (s *Client) GetUnstakeAccountByEpoch(ctx context.Context, programId string, epoch uint64) ([]rsolprog.UnstakeAccount, error) {
-	hexStr := strconv.FormatUint(epoch, 16)
-	if len(hexStr)%2 != 0 {
-		hexStr = "0" + hexStr
-	}
-	hexBytes, err := hex.DecodeString(hexStr)
-	if err != nil {
-		return nil, err
-	}
-	newHexBytes := make([]byte, len(hexBytes))
-	for i, bt := range hexBytes {
-		newHexBytes[len(hexBytes)-1-i] = bt
-	}
+func (s *Client) GetUnstakeAccount(ctx context.Context, programId string, stakeManager string, recipient string) ([]rsolprog.UnstakeAccount, error) {
+
+	stakeManagerPubkey := common.PublicKeyFromString(stakeManager)
+	recipientPubkey := common.PublicKeyFromString(recipient)
 
 	accounts, err := s.GetProgramAccounts(
 		context.Background(),
@@ -33,11 +22,15 @@ func (s *Client) GetUnstakeAccountByEpoch(ctx context.Context, programId string,
 			Encoding: GetAccountInfoConfigEncodingBase64,
 			Filters: []interface{}{
 				map[string]interface{}{"memcmp": Memcmp{
-					Offset: 80,
-					Bytes:  base58.Encode(newHexBytes),
+					Offset: 8,
+					Bytes:  base58.Encode(stakeManagerPubkey[:]),
+				}},
+				map[string]interface{}{"memcmp": Memcmp{
+					Offset: 40,
+					Bytes:  base58.Encode(recipientPubkey[:]),
 				}},
 				map[string]interface{}{
-					"dataSize": 100,
+					"dataSize": 88,
 				},
 			}})
 	if err != nil {

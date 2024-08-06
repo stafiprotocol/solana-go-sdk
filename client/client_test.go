@@ -23,10 +23,10 @@ import (
 
 // var c = client.NewClient([]string{"https://api.devnet.solana.com"})
 
-// var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
+var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
 // var c = client.NewClient([]string{client.DevnetRPCEndpoint})
-var c = client.NewClient([]string{"https://mainnet.helius-rpc.com/?api-key=f0e980a5-d13e-437d-8b59-f9b6957f7d19"})
+// var c = client.NewClient([]string{"https://mainnet.helius-rpc.com/?api-key=f0e980a5-d13e-437d-8b59-f9b6957f7d19"})
 
 // var c = client.NewClient([]string{"https://solana-rpc1.stafi.io"})
 
@@ -556,7 +556,15 @@ func TestEventhash(t *testing.T) {
 }
 
 func TestGetUnstakeAccountByEpoch(t *testing.T) {
-	accs, err := c.GetUnstackAccountByEpoch(context.Background(), "5N1PkgbPx5Qs3eGaJre16AHsNMRPYM9JSwxXDG83tWX9", 615)
+	accs, err := c.GetUnstakeAccountByEpoch(context.Background(), "5N1PkgbPx5Qs3eGaJre16AHsNMRPYM9JSwxXDG83tWX9", 615)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(accs)
+}
+
+func TestGetUnstakeAccount(t *testing.T) {
+	accs, err := c.GetUnstakeAccount(context.Background(), "8ufkkVBM6s52WRnhdF2yUCu1eNPnS123SoVKv8wyBFAp", "44agU7vrDhWnp7AEBKTBmzDYNKMASh7H2QFfwrgjbAbE", "5kgAp3cKoe6eJ18r2rWRjqJgK2iDdVr1WeTH7qMFK52h")
 	if err != nil {
 		t.Fatal(err)
 	}
