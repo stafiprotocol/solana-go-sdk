@@ -15,8 +15,6 @@ github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDk
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/dfuse-io/binary v0.0.0-20210216024852-4ae6830a495d h1:EvEAQZ38olo+sALrqqCo345IeB2HH4im1deNOcjbi0s=
-github.com/dfuse-io/binary v0.0.0-20210216024852-4ae6830a495d/go.mod h1:GDFX6qH3BQZPWTeYaA4ZW98T94zs2skRoG3oMz/0jw0=
 github.com/dfuse-io/logging v0.0.0-20201110202154-26697de88c79 h1:+HRtcJejUYA/2rnyTMbOaZ4g7f4aVuFduTV/03dbpLY=
 github.com/dfuse-io/logging v0.0.0-20201110202154-26697de88c79/go.mod h1:V+ED4kT/t/lKtH99JQmKIb0v9WL3VaYkJ36CfHlVECI=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=

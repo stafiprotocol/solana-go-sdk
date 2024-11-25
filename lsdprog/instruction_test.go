@@ -14,15 +14,13 @@ import (
 )
 
 var lsdprogramIdDev = common.PublicKeyFromString("795MBfkwwtAX4fWiFqZcJK8D91P9tqqtiSRrSNhBvGzq")
-var minterProgramIdDev = common.PublicKeyFromString("HDb577JnkPHLFpfbTg1ncX9jmVHGjzX6S9bgZvNnXjVj")
 
-var validator = common.PublicKeyFromString("vgcDar2pryHvMgPkKaZfh8pQy4BJxv7SpwUG7zinWjG")
 var feeRecipient = common.PublicKeyFromString("344uJfqqsMji7jkcoGY6vcHpExsupcygpex6bJvq2ywG") //random
-var localClient = []string{"https://api.devnet.solana.com"}
+// var localClient = []string{"https://api.devnet.solana.com"}
+var localClient = []string{"https://solana-dev-rpc.stafi.io"}
 
 var id = types.AccountFromPrivateKeyBytes([]byte{179, 95, 213, 234, 125, 167, 246, 188, 230, 134, 181, 219, 31, 146, 239, 75, 190, 124, 112, 93, 187, 140, 178, 119, 90, 153, 207, 178, 137, 5, 53, 71, 116, 28, 190, 12, 249, 238, 110, 135, 109, 21, 196, 36, 191, 19, 236, 175, 229, 204, 68, 180, 130, 102, 71, 239, 41, 53, 152, 159, 175, 124, 180, 6})
 var admin = types.AccountFromPrivateKeyBytes([]byte{142, 61, 202, 203, 179, 165, 19, 161, 233, 247, 36, 152, 120, 184, 62, 139, 88, 69, 120, 227, 94, 87, 244, 241, 207, 94, 29, 115, 12, 177, 134, 33, 252, 93, 7, 42, 197, 184, 34, 111, 171, 84, 21, 195, 106, 93, 249, 214, 173, 78, 212, 191, 16, 138, 230, 43, 25, 124, 41, 12, 133, 211, 37, 242})
-var staker = types.AccountFromPrivateKeyBytes([]byte{90, 111, 119, 62, 149, 35, 16, 87, 135, 90, 47, 202, 31, 47, 85, 140, 65, 17, 88, 226, 229, 193, 38, 9, 103, 255, 72, 136, 150, 213, 224, 50, 47, 183, 28, 18, 35, 161, 125, 133, 219, 9, 124, 130, 85, 200, 82, 75, 251, 232, 246, 67, 137, 238, 173, 105, 146, 126, 153, 90, 190, 88, 30, 81})
 
 func TestInitialize(t *testing.T) {
 	c := client.NewClient(localClient)
@@ -257,14 +255,14 @@ func TestStake(t *testing.T) {
 		fmt.Printf("get recent block hash error, err: %v\n", err)
 	}
 
-	rSolMint := common.PublicKeyFromString("4vHaXZjoP412S9yTpgAmLM5q2oDNS8PZY9jPfPDq8GGS") // rsol_mint.json
+	rSolMint := common.PublicKeyFromString("6zX4Gn6NXeDF4bqWZCcvoUnScF1xuPNJ8d2g6nftW6k1") // rsol_mint.json
 	feePayer := id
 	from := id
 
-	stakeManager := common.PublicKeyFromString("4TGhgAsssh77bbcxZ2RezvLEz7FxVV4wCbwBXHXg6bJD")
-	stakePool := common.PublicKeyFromString("7AdHHV1dC38Q6nNYB9mtD2PxPQSzvbPYmfovqFESqfpe")
+	stakeManager := common.PublicKeyFromString("JAAGMA3nXSFq3QhSMC9Trkf5hneMGoGRLaGtEkmL1Nmj")
+	stakePool := common.PublicKeyFromString("3NCv41v4MTbNPw38yu2ZJFPcujmBDz1FnDA7AaiPPrwB")
 
-	mintTo := common.PublicKeyFromString("DQdKkHRtio3AXYpmAm7zC94nxGRGhv1kFHCjkwPt9HTg")
+	mintTo := common.PublicKeyFromString("AzjXwoUUEzyjTqEykYnH2sRnHA8mAUfHTKh9VStVc8qM")
 
 	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
 		Instructions: []types.Instruction{
@@ -275,7 +273,7 @@ func TestStake(t *testing.T) {
 				from.PublicKey,
 				rSolMint,
 				mintTo,
-				1e9,
+				1e5,
 			),
 		},
 		Signers:         []types.Account{feePayer, from},
@@ -383,313 +381,6 @@ func TestWithdraw(t *testing.T) {
 
 	fmt.Println("withdraw txHash:", txHash)
 
-}
-
-func TestEraNew(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			lsdprog.EraNew(
-				lsdprogramIdDev,
-				stakeManager,
-			),
-		},
-		Signers:         []types.Account{feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("era new txHash:", txHash)
-
-}
-
-func TestEraBond(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-	rentPayer := id
-	stakeAccount := types.NewAccount()
-	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
-	stakePool := common.PublicKeyFromString("GYoZ5kSumbV2zqCbRYp9jex1AFaCWjbFYQS9URDmswFG")
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			lsdprog.EraBond(
-				lsdprogramIdDev,
-				stakeManager,
-				validator,
-				stakePool,
-				stakeAccount.PublicKey,
-				rentPayer.PublicKey,
-			),
-		},
-		Signers:         []types.Account{feePayer, stakeAccount},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("era bond txHash:", txHash)
-
-}
-
-func TestEraUnbond(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-	rentPayer := id
-	splitStakeAccount := types.NewAccount()
-	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
-	stakePool := common.PublicKeyFromString("GYoZ5kSumbV2zqCbRYp9jex1AFaCWjbFYQS9URDmswFG")
-	// stakeAccount := common.PublicKeyFromString("Gawre8qmHnyKs5zpaDFPXSMpZq9D9YBCxmvQ4A18wue3")
-	stakeAccount := common.PublicKeyFromString("Db8kTcMbMRrHN1jkXBEAsyDHzPtsHh6Rcm1ae7HHRGSy")
-	// stakeAccount := common.PublicKeyFromString("APZuLDgxQNh2zgidnrnhPKAE1HsQmUMSSURQDkM6s7ps")
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			lsdprog.EraUnbond(
-				lsdprogramIdDev,
-				stakeManager,
-				stakePool,
-				stakeAccount,
-				splitStakeAccount.PublicKey,
-				validator,
-				rentPayer.PublicKey,
-			),
-		},
-		Signers:         []types.Account{feePayer, splitStakeAccount, rentPayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("era unbond txHash:", txHash)
-
-}
-
-func TestEraUpdateActive(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-
-	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
-	// stakeAccount := common.PublicKeyFromString("APZuLDgxQNh2zgidnrnhPKAE1HsQmUMSSURQDkM6s7ps")
-	// stakeAccount := common.PublicKeyFromString("Gawre8qmHnyKs5zpaDFPXSMpZq9D9YBCxmvQ4A18wue3")
-	stakeAccount := common.PublicKeyFromString("FGnk3JMdmGQDeYCVCtR6DuUPVUUpuRyBN2qAWnf2Zi2z")
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			lsdprog.EraUpdateActive(
-				lsdprogramIdDev,
-				stakeManager,
-				stakeAccount,
-			),
-		},
-		Signers:         []types.Account{feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("era update active txHash:", txHash)
-
-}
-func TestEraUpdateRate(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-
-	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
-
-	rSolMint := common.PublicKeyFromString("6jnyhgA2dPWDpw1WqgTaCyjp8otXkP5655DQ6RSnwbv5") // rsol_mint.json
-
-	stakePool, _, err := common.FindProgramAddress([][]byte{stakeManager.Bytes(), []byte("pool_seed")}, lsdprogramIdDev)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	minterManagerAccount := common.PublicKeyFromString("5ou6pU6ByghiA148DokoVQLpPqGcnww9qS8TQzwcmQcx")
-	mintAuthority := common.PublicKeyFromString("66DBm2GT5ELRvXfZ8GVbvurMrwcsxK59rNvGULnsnXvW")
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			lsdprog.EraUpdateRate(
-				lsdprogramIdDev,
-				stakeManager,
-				stakePool,
-				minterManagerAccount,
-				rSolMint,
-				feeRecipient,
-				mintAuthority,
-				minterProgramIdDev,
-			),
-		},
-		Signers:         []types.Account{feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("era update rate txHash:", txHash)
-
-}
-
-func TestEraMerge(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-
-	stakeManager := common.PublicKeyFromString("CThKc2gVW9fZUaz9g5UEZikMRusPjThKaFGohR1tkQhk")
-	srcStakeAccount := common.PublicKeyFromString("BbHMFJozZ8SDRgMTTHDdbDNsKuBSNLaBV4o16T4mAUKz")
-	dstStakeAccount := common.PublicKeyFromString("5jTc9Q44AF9avDtKGcQKNYNUZbNYtiigBygoj4bLwmdh")
-	stakePool, _, err := common.FindProgramAddress([][]byte{stakeManager.Bytes(), []byte("pool_seed")}, lsdprogramIdDev)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			lsdprog.EraMerge(
-				lsdprogramIdDev,
-				stakeManager,
-				srcStakeAccount,
-				dstStakeAccount,
-				stakePool,
-			),
-		},
-		Signers:         []types.Account{feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("era merge txHash:", txHash)
-}
-
-func TestEraWithdraw(t *testing.T) {
-	c := client.NewClient(localClient)
-
-	res, err := c.GetLatestBlockhash(context.Background(), client.GetLatestBlockhashConfig{
-		Commitment: client.CommitmentConfirmed,
-	})
-	if err != nil {
-		fmt.Printf("get recent block hash error, err: %v\n", err)
-	}
-
-	feePayer := id
-
-	stakeManager := common.PublicKeyFromString("FccgufF6s9WivdfZYKsR52DWyN9fFMyELvKjyJNCeDkj")
-	stakeAccount := common.PublicKeyFromString("HATNwBQQsCBxd3G4RNMK7ScgX5CsEhm8e4EK1TT8jcrB")
-	stakePool, _, err := common.FindProgramAddress([][]byte{stakeManager.Bytes(), []byte("pool_seed")}, lsdprogramIdDev)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rawTx, err := types.CreateRawTransaction(types.CreateRawTransactionParam{
-		Instructions: []types.Instruction{
-			lsdprog.EraWithdraw(
-				lsdprogramIdDev,
-				stakeManager,
-				stakePool,
-				stakeAccount,
-			),
-		},
-		Signers:         []types.Account{feePayer},
-		FeePayer:        feePayer.PublicKey,
-		RecentBlockHash: res.Blockhash,
-	})
-	if err != nil {
-		fmt.Printf("generate tx error, err: %v\n", err)
-	}
-	txHash, err := c.SendRawTransaction(context.Background(), rawTx)
-	if err != nil {
-		fmt.Printf("send tx error, err: %v\n", err)
-	}
-
-	fmt.Println("era withdraw txHash:", txHash)
 }
 
 func TestFindProgramAddress(t *testing.T) {

@@ -23,7 +23,7 @@ import (
 
 // var c = client.NewClient([]string{"https://api.devnet.solana.com"})
 
-var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
+// var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 
 // var c = client.NewClient([]string{client.DevnetRPCEndpoint})
 // var c = client.NewClient([]string{"https://mainnet.helius-rpc.com/?api-key=f0e980a5-d13e-437d-8b59-f9b6957f7d19"})
@@ -36,6 +36,8 @@ var c = client.NewClient([]string{"https://solana-dev-rpc.stafi.io"})
 // var c = client.NewClient([]string{"https://try-rpc.mainnet.solana.blockdaemon.tech"})
 
 // var c = client.NewClient([]string{"https://rpc.ankr.com/solana_mainnet"})
+var c = client.NewClient([]string{"https://api.mainnet-beta.solana.com"})
+
 // var c = client.NewClient([]string{"https://solana-mainnet.g.alchemy.com/v2/jfqvfqIeeKDImPdksQEH-SL62h-fExgv"})
 // var c = client.NewClient([]string{"https://try.blockdaemon.com/rpc/solana"})
 // var c = client.NewClient([]string{"https://try-rpc.mainnet.solana.blockdaemon.tech"})
@@ -75,7 +77,6 @@ func TestGetSubAccount(t *testing.T) {
 	t.Log(info.StakeAccount.Info.Stake.Delegation.Stake)
 	t.Log(info.Lamports)
 
-	t.Log(info.StakeAccount.IsStakeAndNoDeactive())
 }
 
 func TestAccountInfo(t *testing.T) {
@@ -136,13 +137,32 @@ func TestGetStakeActivation(t *testing.T) {
 	t.Logf("%+v", accountActivateInfo)
 }
 
+func TestGetStakeHistory(t *testing.T) {
+	accountActivateInfo, err := c.GetStakeHistory(context.Background())
+	if err != nil {
+		if strings.Contains(err.Error(), "account not found") {
+			t.Log(err)
+		} else {
+			t.Fatal(err)
+		}
+	}
+
+	t.Logf("%+v", accountActivateInfo)
+}
+
 func TestGetStakeAccountInfo(t *testing.T) {
 	accountActivateInfo, err := c.GetStakeAccountInfo(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", accountActivateInfo)
+	accountActivation, err := c.CalStakeActivation(context.Background(), "D6tm58oqeMz1VSLNFXNnpyJi8S2A9JHJEp24sDpBo3Dm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", accountActivation)
 	return
+
 	accountActivateInfoBase1, err := c.GetStakeAccountInfo(context.Background(), "4ackc4eexr1DN5eNwzQ5DnNNCAVJiCU84Ev4abUMRKau")
 	if err != nil {
 		t.Fatal(err)
@@ -260,9 +280,12 @@ func TestGetTransaction(t *testing.T) {
 	// sigs, _ := c.GetSignaturesForAddress(context.Background(), "EPfxck35M3NJwsjreExLLyQAgAL3y5uWfzddY6cHBrGy", client.GetSignaturesForAddressConfig{})
 	// for _, sig := range sigs {
 	// 	t.Log(sig.Signature)
-	tx1, err := c.GetTransactionV2(context.Background(), "kpVajVwFb3uKFFUKf57BkBpua5zZeCcLRrQNRUXC9a8ePS5puj18LmvtCdycNi8iM2bypkhhhv8mVY8criBd1Ba")
+	tx1, err := c.GetTransactionV2(context.Background(), "HVzZtrnVmQQFeQjuf1Ymwboep1D6YpKAeg1Dun5Ff5diDqyfwkwGPYjwyiqwMpxUXw8vvTwtouAXdSwQcMzQWEK")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if tx1.Meta.Err != nil {
+		t.Log(tx1.Meta.Err)
 	}
 	bts, err := json.Marshal(tx1)
 	if err != nil {

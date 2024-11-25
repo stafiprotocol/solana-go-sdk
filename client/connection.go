@@ -15,8 +15,9 @@ const (
 	DevnetRPCEndpoint  = "https://api.devnet.solana.com"
 	TestnetRPCEndpoint = "https://testnet.solana.com"
 	MainnetRPCEndpoint = "https://api.mainnet-beta.solana.com"
-	retryLimit         = 60 * 10
-	waitTime           = time.Second * 3
+	// retryLimit         = 60 * 10
+	retryLimit = 2
+	waitTime   = time.Second * 3
 )
 
 type Commitment string
