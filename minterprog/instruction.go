@@ -15,6 +15,7 @@ var (
 	InstructionInitialize            Instruction
 	InstructionMintToken             Instruction
 	InstructionSetExtMintAuthorities Instruction
+	InstructionTransferAdmin         Instruction
 
 	MinterManagerAccountLengthDefault = uint64(2000)
 )
@@ -28,6 +29,9 @@ func init() {
 
 	setExtMintAuthoritiesHash := sha256.Sum256([]byte("global:set_ext_mint_authorities"))
 	copy(InstructionSetExtMintAuthorities[:], setExtMintAuthoritiesHash[:8])
+
+	transferAdminHash := sha256.Sum256([]byte("global:transfer_admin"))
+	copy(InstructionTransferAdmin[:], transferAdminHash[:8])
 
 }
 
@@ -127,5 +131,37 @@ func SetExtMintAuthorities(
 		ProgramID: minterProgramID,
 		Accounts:  accounts,
 		Data:      data,
+	}
+}
+
+func TransferAdmin(
+	minterProgramID,
+	mintManager,
+	admin common.PublicKey,
+	newAdmin common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+		NewAdmin    common.PublicKey
+	}{
+		Instruction: InstructionTransferAdmin,
+		NewAdmin:    newAdmin,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	if newAdmin == (common.PublicKey{}) {
+		panic("admin empty")
+	}
+
+	return types.Instruction{
+		ProgramID: minterProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: mintManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
 	}
 }

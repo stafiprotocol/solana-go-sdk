@@ -26,6 +26,8 @@ var (
 	InstructionSetUnbondingDuration    Instruction
 	InstructionReallocStakeManager     Instruction
 	InstructionUpgradeStakeManager     Instruction
+	InstructionTransferAdmin           Instruction
+	InstructionTransferFeeRecipient    Instruction
 
 	InstructionStake    Instruction
 	InstructionUnstake  Instruction
@@ -63,6 +65,10 @@ func init() {
 	copy(InstructionReallocStakeManager[:], reallocStakeManagerHash[:8])
 	upgradeStakeManagerHash := sha256.Sum256([]byte("global:upgrade_stake_manager"))
 	copy(InstructionUpgradeStakeManager[:], upgradeStakeManagerHash[:8])
+	transferAdminHash := sha256.Sum256([]byte("global:transfer_admin"))
+	copy(InstructionTransferAdmin[:], transferAdminHash[:8])
+	transferFeeRecipientHash := sha256.Sum256([]byte("global:transfer_fee_recipient"))
+	copy(InstructionTransferFeeRecipient[:], transferFeeRecipientHash[:8])
 
 	stakeHash := sha256.Sum256([]byte("global:stake"))
 	copy(InstructionStake[:], stakeHash[:8])
@@ -340,6 +346,69 @@ func SetUnbondingDuration(
 	})
 	if err != nil {
 		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func TransferAdmin(
+	rSolProgramID,
+	stakeManager,
+	admin common.PublicKey,
+	newAdmin common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction Instruction
+		NewAdmin    common.PublicKey
+	}{
+		Instruction: InstructionTransferAdmin,
+		NewAdmin:    newAdmin,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	if newAdmin == (common.PublicKey{}) {
+		panic("admin empty")
+	}
+
+	return types.Instruction{
+		ProgramID: rSolProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func TransferFeeRecipient(
+	rSolProgramID,
+	stakeManager,
+	admin common.PublicKey,
+	newFeeRecipient common.PublicKey,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction     Instruction
+		NewFeeRecipient common.PublicKey
+	}{
+		Instruction:     InstructionTransferFeeRecipient,
+		NewFeeRecipient: newFeeRecipient,
+	})
+	if err != nil {
+		panic(err)
+	}
+	if newFeeRecipient == (common.PublicKey{}) {
+		panic("feeRecipient empty")
 	}
 
 	return types.Instruction{
