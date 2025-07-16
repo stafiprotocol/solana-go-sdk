@@ -21,13 +21,14 @@ var (
 
 	InstructionAddEntrustedStakeManager Instruction
 
-	InstructionAddValidator             Instruction
-	InstructionRemoveValidator          Instruction
-	InstructionRedelegate               Instruction
-	InstructionSetRateChangeLimit       Instruction
-	InstructionSetPlatformFeeCommission Instruction
-	InstructionSetUnbondingDuration     Instruction
-	InstructionReallocStakeManager      Instruction
+	InstructionAddValidator                  Instruction
+	InstructionRemoveValidator               Instruction
+	InstructionRedelegate                    Instruction
+	InstructionSetRateChangeLimit            Instruction
+	InstructionSetPlatformFeeCommission      Instruction
+	InstructionSetPlatformStackFeeCommission Instruction
+	InstructionSetUnbondingDuration          Instruction
+	InstructionReallocStakeManager           Instruction
 
 	InstructionStake    Instruction
 	InstructionUnstake  Instruction
@@ -62,6 +63,8 @@ func init() {
 	copy(InstructionSetRateChangeLimit[:], setRateChangeLimitHash[:8])
 	setPlatformFeeCommissionHash := sha256.Sum256([]byte("global:set_platform_fee_commission"))
 	copy(InstructionSetPlatformFeeCommission[:], setPlatformFeeCommissionHash[:8])
+	setPlatformStackFeeCommissionHash := sha256.Sum256([]byte("global:set_platform_stack_fee_commission"))
+	copy(InstructionSetPlatformStackFeeCommission[:], setPlatformStackFeeCommissionHash[:8])
 	setUnbondingDurationHash := sha256.Sum256([]byte("global:set_unbonding_duration"))
 	copy(InstructionSetUnbondingDuration[:], setUnbondingDurationHash[:8])
 	reallocStakeManagerHash := sha256.Sum256([]byte("global:realloc_stake_manager"))
@@ -341,6 +344,36 @@ func SetPlatformFeeCommission(
 		ProgramID: lsdProgramID,
 		Accounts: []types.AccountMeta{
 			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: admin, IsSigner: true, IsWritable: false},
+		},
+		Data: data,
+	}
+}
+
+func SetPlatformStackFeeCommission(
+	lsdProgramID,
+	stakeManager,
+	stack,
+	admin common.PublicKey,
+	stackFeeCommission uint64,
+) types.Instruction {
+
+	data, err := borsh.Serialize(struct {
+		Instruction        Instruction
+		stackFeeCommission uint64
+	}{
+		Instruction:        InstructionSetPlatformStackFeeCommission,
+		stackFeeCommission: stackFeeCommission,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Instruction{
+		ProgramID: lsdProgramID,
+		Accounts: []types.AccountMeta{
+			{PubKey: stakeManager, IsSigner: false, IsWritable: true},
+			{PubKey: stack, IsSigner: false, IsWritable: false},
 			{PubKey: admin, IsSigner: true, IsWritable: false},
 		},
 		Data: data,
